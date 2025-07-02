@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { notFound } from 'next/navigation';
 import InputTable from '@/components/InputTable';
 import ResultsDisplay from '@/components/ResultsDisplay';
+import AlgorithmExplanation from '@/components/AlgorithmExplanation';
 import { calculateFCFS, calculateSJF, calculateSRTF, calculateRR, calculateLJF, calculateLRTF, calculatePriorityP, calculatePriorityNP } from '@/lib/algorithms';
 
 interface Process {
@@ -70,6 +71,7 @@ export default function AlgorithmPage({ params }: PageProps) {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto py-6">
         <h1 className="text-3xl font-bold text-center mb-8">{algorithmName}</h1>
+        <AlgorithmExplanation algorithmKey={params.name} />
         <InputTable
           algorithm={algorithmName}
           onCalculate={handleCalculate}
