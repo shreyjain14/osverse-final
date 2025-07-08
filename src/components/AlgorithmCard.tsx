@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 interface AlgorithmCardProps {
   name: string;
@@ -12,7 +13,11 @@ interface AlgorithmCardProps {
 
 export default function AlgorithmCard({ name, icon, description, features, href, gradient }: AlgorithmCardProps) {
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      whileHover={{ scale: 1.045, boxShadow: "0 8px 32px 0 rgba(80, 120, 255, 0.18)" }}
       className="group relative rounded-3xl shadow-xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 card-hover animate-fade-in-up glass border border-white/20 backdrop-blur-lg"
       style={{ background: `${gradient}, rgba(255,255,255,0.15)` }}
     >
@@ -66,6 +71,6 @@ export default function AlgorithmCard({ name, icon, description, features, href,
         {/* Hover Effect */}
         <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl"></div>
       </div>
-    </div>
+    </motion.div>
   );
 } 
