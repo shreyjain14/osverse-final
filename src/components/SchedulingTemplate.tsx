@@ -304,6 +304,17 @@ export default function SchedulingTemplate({
       <Card className="max-w-4xl w-full p-6 mt-8">
         <h2 className={`text-xl font-semibold mb-4 ${colorScheme.primary}`}>Gantt Chart</h2>
         <ClassicGanttChart gantt={gantt} />
+        {gantt.length > 0 && (
+          <div className="mt-4 text-center">
+            <Link href={`/view-model?data=${encodeURIComponent(JSON.stringify(gantt))}`}>
+              <Button asChild className={`${colorScheme.accent} hover:${colorScheme.primary} text-white`}>
+                <a>
+                  View in 3D / AR
+                </a>
+              </Button>
+            </Link>
+          </div>
+        )}
       </Card>
     </div>
   );
