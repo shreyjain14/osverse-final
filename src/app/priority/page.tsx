@@ -7,7 +7,7 @@ interface Process {
   name: string;
   arrival: number;
   burst: number;
-  priority: number;
+  priority?: number;
 }
 
 interface GanttEntry {
@@ -35,8 +35,9 @@ function calculatePriority(processes: Process[]): SchedulingResult {
     let idx = -1;
     let minPriority = Infinity;
     for (let i = 0; i < n; i++) {
-      if (!isDone[i] && processes[i].arrival <= time && processes[i].priority < minPriority) {
-        minPriority = processes[i].priority;
+      const priority = processes[i].priority;
+      if (!isDone[i] && processes[i].arrival <= time && priority !== undefined && priority < minPriority) {
+        minPriority = priority;
         idx = i;
       }
     }
@@ -52,7 +53,7 @@ function calculatePriority(processes: Process[]): SchedulingResult {
     totalTAT += tat;
     totalWT += wt;
     gantt.push({ name: processes[idx].name, start, end: finish });
-    results[idx] = { ...processes[idx], finish, tat, wt };
+    results[idx] = { ...processes[idx], finish, tat, wt, priority: processes[idx].priority || 0 };
     isDone[idx] = true;
     completed++;
   }
@@ -69,7 +70,6 @@ export default function PriorityPage() {
     { name: "P1", arrival: 0, burst: 4, priority: 2 },
     { name: "P2", arrival: 1, burst: 3, priority: 1 },
   ]);
-  const [priority, setPriority] = useState("");
 
   const colorScheme = {
     primary: "text-yellow-700",
@@ -78,22 +78,11 @@ export default function PriorityPage() {
     bg: "from-yellow-100 via-orange-50 to-red-100"
   };
 
-  const additionalFields = (
-    <Input
-      placeholder="Priority"
-      type="number"
-      value={priority}
-      onChange={e => setPriority(e.target.value)}
-      className="sm:w-24"
-      required
-    />
-  );
-
-  // Custom setProcesses to include priority
-  const setProcessesWithPriority = (newProcesses: Process[]) => {
-    setProcesses(newProcesses);
-    setPriority("");
-  };
+  const defaultProcesses = [
+    { name: "P1", arrival: 0, burst: 0, priority: 0 },
+    { name: "P2", arrival: 0, burst: 0, priority: 0 },
+    { name: "P3", arrival: 0, burst: 0, priority: 0 }
+  ];
 
   return (
     <SchedulingTemplate
@@ -101,9 +90,9 @@ export default function PriorityPage() {
       description="Priority scheduling executes processes based on priority, with higher priority processes running first. Lower numbers mean higher priority. Can cause starvation for low-priority processes."
       colorScheme={colorScheme}
       processes={processes}
-      setProcesses={setProcessesWithPriority}
+      setProcesses={setProcesses}
       calculateScheduling={calculatePriority}
-      additionalFields={additionalFields}
+      defaultProcesses={defaultProcesses}
     />
   );
 } 

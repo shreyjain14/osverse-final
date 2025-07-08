@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,8 @@ interface Process {
   burst: number;
   priority?: number;
   deadline?: number;
+  tickets?: number;
+  group?: string;
 }
 
 interface GanttEntry {
@@ -55,10 +57,18 @@ export default function SchedulingTemplate({
   additionalFields,
   defaultProcesses = []
 }: SchedulingTemplateProps) {
-  const [name, setName] = useState("");
-  const [arrival, setArrival] = useState("");
-  const [burst, setBurst] = useState("");
-  const [priority, setPriority] = useState("");
+  const [tableProcesses, setTableProcesses] = useState<Process[]>([
+    { name: "P1", arrival: 0, burst: 0 },
+    { name: "P2", arrival: 0, burst: 0 },
+    { name: "P3", arrival: 0, burst: 0 }
+  ]);
+
+  // Initialize table processes with default processes if provided
+  React.useEffect(() => {
+    if (defaultProcesses.length > 0) {
+      setTableProcesses(defaultProcesses);
+    }
+  }, [defaultProcesses]);
 
   const { results, avgTAT, avgWT, gantt } = calculateScheduling(processes);
 
@@ -77,6 +87,38 @@ export default function SchedulingTemplate({
     timelineData.push(entry);
   }
 
+  const updateProcess = (index: number, field: keyof Process, value: string | number) => {
+    const newProcesses = [...tableProcesses];
+    newProcesses[index] = { ...newProcesses[index], [field]: value };
+    setTableProcesses(newProcesses);
+  };
+
+  const addProcess = () => {
+    setTableProcesses([...tableProcesses, { 
+      name: `P${tableProcesses.length + 1}`, 
+      arrival: 0, 
+      burst: 0 
+    }]);
+  };
+
+  const removeProcess = (index: number) => {
+    if (tableProcesses.length > 1) {
+      const newProcesses = tableProcesses.filter((_, i) => i !== index);
+      // Rename processes to maintain sequential naming
+      const renamedProcesses = newProcesses.map((p, i) => ({
+        ...p,
+        name: `P${i + 1}`
+      }));
+      setTableProcesses(renamedProcesses);
+    }
+  };
+
+  const applyProcesses = () => {
+    // Filter out processes with burst time 0 and apply to main processes
+    const validProcesses = tableProcesses.filter(p => p.burst > 0);
+    setProcesses(validProcesses);
+  };
+
   return (
     <div className={`min-h-screen bg-gradient-to-br ${colorScheme.bg} flex flex-col items-center p-6`}>
       <div className="w-full max-w-4xl mb-4">
@@ -92,42 +134,123 @@ export default function SchedulingTemplate({
         <p className="mb-4 text-lg">{description}</p>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full max-w-4xl">
-        {/* Process Input Form */}
+      <div className="w-full max-w-4xl space-y-8">
+        {/* Process Input Table */}
         <Card className="p-6">
-          <h2 className={`text-xl font-semibold mb-4 ${colorScheme.primary}`}>Add Process</h2>
-          <form
-            className="flex flex-col gap-4"
-            onSubmit={e => {
-              e.preventDefault();
-              const newProcess: Process = {
-                name: name || `P${processes.length + 1}`,
-                arrival: Number(arrival),
-                burst: Number(burst),
-                ...(priority && { priority: Number(priority) })
-              };
-              setProcesses([...processes, newProcess]);
-              setName(""); setArrival(""); setBurst(""); setPriority("");
-            }}
-          >
-            <div className="grid grid-cols-2 gap-4">
-              <Input placeholder="Name" value={name} onChange={e => setName(e.target.value)} />
-              <Input placeholder="Arrival" type="number" value={arrival} onChange={e => setArrival(e.target.value)} required />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <Input placeholder="Burst" type="number" value={burst} onChange={e => setBurst(e.target.value)} required />
-              {additionalFields}
-            </div>
-            <Button type="submit" className={`${colorScheme.accent} hover:${colorScheme.primary} text-white`}>
+          <h2 className={`text-xl font-semibold mb-4 ${colorScheme.primary}`}>Process Input</h2>
+          
+          <div className="overflow-x-auto mb-4">
+            <table className="min-w-full border-collapse">
+              <thead>
+                <tr className={`${colorScheme.secondary} ${colorScheme.primary}`}>
+                  <th className="px-3 py-2 text-left">Process</th>
+                  <th className="px-3 py-2 text-center">Arrival</th>
+                  <th className="px-3 py-2 text-center">Burst</th>
+                  {additionalFields && (
+                    <th className="px-3 py-2 text-center">
+                      {tableProcesses[0]?.priority !== undefined ? "Priority" :
+                       tableProcesses[0]?.deadline !== undefined ? "Deadline" :
+                       tableProcesses[0]?.tickets !== undefined ? "Tickets" :
+                       tableProcesses[0]?.group !== undefined ? "Group" : "Additional"}
+                    </th>
+                  )}
+                  <th className="px-3 py-2 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tableProcesses.map((process, index) => (
+                  <tr key={index} className="border-b border-gray-200 hover:bg-gray-50">
+                    <td className="px-3 py-2">
+                      <Input
+                        value={process.name}
+                        onChange={(e) => updateProcess(index, 'name', e.target.value)}
+                        className="w-20 text-center"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        value={process.arrival}
+                        onChange={(e) => updateProcess(index, 'arrival', Number(e.target.value) || 0)}
+                        className="w-20 text-center"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        value={process.burst}
+                        onChange={(e) => updateProcess(index, 'burst', Number(e.target.value) || 0)}
+                        className="w-20 text-center"
+                      />
+                    </td>
+                    {additionalFields && (
+                      <td className="px-3 py-2">
+                        <Input
+                          type={process.priority !== undefined || process.deadline !== undefined || process.tickets !== undefined ? "number" : "text"}
+                          min={process.priority !== undefined || process.deadline !== undefined || process.tickets !== undefined ? "0" : undefined}
+                          value={process.priority || process.deadline || process.tickets || process.group || ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (process.priority !== undefined) {
+                              updateProcess(index, 'priority', Number(value) || 0);
+                            } else if (process.deadline !== undefined) {
+                              updateProcess(index, 'deadline', Number(value) || 0);
+                            } else if (process.tickets !== undefined) {
+                              updateProcess(index, 'tickets', Number(value) || 0);
+                            } else if (process.group !== undefined) {
+                              updateProcess(index, 'group', value);
+                            }
+                          }}
+                          className="w-20 text-center"
+                          placeholder={process.priority !== undefined ? "Priority" : 
+                                     process.deadline !== undefined ? "Deadline" :
+                                     process.tickets !== undefined ? "Tickets" :
+                                     process.group !== undefined ? "Group" : "Additional"}
+                        />
+                      </td>
+                    )}
+                    <td className="px-3 py-2 text-center">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeProcess(index)}
+                        disabled={tableProcesses.length === 1}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        Remove
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="flex gap-2 mb-4">
+            <Button 
+              onClick={addProcess}
+              className={`${colorScheme.accent} hover:${colorScheme.primary} text-white`}
+            >
               Add Process
             </Button>
-          </form>
+            <Button 
+              onClick={applyProcesses}
+              className={`${colorScheme.accent} hover:${colorScheme.primary} text-white`}
+            >
+              Apply Processes
+            </Button>
+          </div>
           
           <div className="mt-4 flex flex-wrap gap-2">
             {processes.map((p, i) => (
               <span key={i} className={`${colorScheme.secondary} ${colorScheme.primary} px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2`}>
                 {p.name} (A:{p.arrival}, B:{p.burst}
-                {p.priority && `, Pr:${p.priority}`})
+                {p.priority && `, Pr:${p.priority}`}
+                {p.deadline && `, D:${p.deadline}`}
+                {p.tickets && `, T:${p.tickets}`}
+                {p.group && `, G:${p.group}`})
                 <button onClick={() => setProcesses(processes.filter((_, j) => j !== i))} className="ml-2 hover:opacity-70">×</button>
               </span>
             ))}
