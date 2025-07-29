@@ -1,14 +1,18 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SchedulingTemplate from "@/components/SchedulingTemplate";
 import { Input } from "@/components/ui/input";
 
-interface Process {
+// Import the Process interface from SchedulingTemplate to avoid conflicts
+type Process = {
   name: string;
   arrival: number;
   burst: number;
-  tickets: number;
-}
+  tickets?: number;
+  priority?: number;
+  deadline?: number;
+  group?: string;
+};
 
 interface GanttEntry {
   name: string;
@@ -41,7 +45,7 @@ function calculateLottery(processes: Process[]): SchedulingResult {
     for (let i = 0; i < n; i++) {
       if (!isDone[i] && processes[i].arrival <= time && rem[i] > 0) {
         candidates.push(i);
-        for (let t = 0; t < processes[i].tickets; t++) tickets.push(i);
+        for (let t = 0; t < (processes[i].tickets || 1); t++) tickets.push(i);
       }
     }
     if (candidates.length === 0) {
@@ -77,6 +81,14 @@ export default function LotteryPage() {
     { name: "P2", arrival: 1, burst: 3, tickets: 2 },
   ]);
   const [tickets, setTickets] = useState("");
+  const [schedulingResult, setSchedulingResult] = useState<SchedulingResult | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  // Only run random calculations on the client side
+  useEffect(() => {
+    setIsClient(true);
+    setSchedulingResult(calculateLottery(processes));
+  }, [processes]);
 
   const colorScheme = {
     primary: "text-indigo-700",
@@ -102,6 +114,18 @@ export default function LotteryPage() {
     setTickets("");
   };
 
+  // Only render the template when we have client-side results
+  if (!isClient || !schedulingResult) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-blue-50 to-purple-100 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Loading...</h1>
+          <p>Preparing lottery scheduling visualization...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <SchedulingTemplate
       title="Lottery Scheduling"
@@ -109,7 +133,7 @@ export default function LotteryPage() {
       colorScheme={colorScheme}
       processes={processes}
       setProcesses={setProcessesWithTickets}
-      calculateScheduling={calculateLottery}
+      calculateScheduling={(processes: Process[]) => schedulingResult}
       additionalFields={additionalFields}
     />
   );

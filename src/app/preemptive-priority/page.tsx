@@ -7,7 +7,7 @@ interface Process {
   name: string;
   arrival: number;
   burst: number;
-  priority: number;
+  priority?: number;
 }
 
 interface GanttEntry {
@@ -37,8 +37,9 @@ function calculatePreemptivePriority(processes: Process[]): SchedulingResult {
   while (completed < n) {
     let idx = -1, minPriority = Infinity;
     for (let i = 0; i < n; i++) {
-      if (!isDone[i] && processes[i].arrival <= time && processes[i].priority < minPriority && rem[i] > 0) {
-        minPriority = processes[i].priority;
+      const priority = processes[i].priority || 0;
+      if (!isDone[i] && processes[i].arrival <= time && priority < minPriority && rem[i] > 0) {
+        minPriority = priority;
         idx = i;
       }
     }
@@ -66,7 +67,7 @@ function calculatePreemptivePriority(processes: Process[]): SchedulingResult {
     last = idx;
   }
   return {
-    results: processes.map((p, i) => ({ ...p, finish: finish[i], tat: tat[i], wt: wt[i] })),
+    results: processes.map((p, i) => ({ ...p, finish: finish[i], tat: tat[i], wt: wt[i], priority: p.priority || 0 })),
     avgTAT: (totalTAT / n).toFixed(2),
     avgWT: (totalWT / n).toFixed(2),
     gantt,
@@ -78,7 +79,6 @@ export default function PreemptivePriorityPage() {
     { name: "P1", arrival: 0, burst: 7, priority: 2 },
     { name: "P2", arrival: 2, burst: 4, priority: 1 },
   ]);
-  const [priority, setPriority] = useState("");
 
   const colorScheme = {
     primary: "text-purple-700",
@@ -91,8 +91,6 @@ export default function PreemptivePriorityPage() {
     <Input
       placeholder="Priority"
       type="number"
-      value={priority}
-      onChange={e => setPriority(e.target.value)}
       className="sm:w-24"
       required
     />
@@ -101,7 +99,6 @@ export default function PreemptivePriorityPage() {
   // Custom setProcesses to include priority
   const setProcessesWithPriority = (newProcesses: Process[]) => {
     setProcesses(newProcesses);
-    setPriority("");
   };
 
   return (
@@ -110,7 +107,7 @@ export default function PreemptivePriorityPage() {
       description="Preemptive Priority scheduling executes the highest priority process at every time unit. Lower numbers mean higher priority. If a new process arrives with higher priority, it preempts the running process."
       colorScheme={colorScheme}
       processes={processes}
-      setProcesses={setProcessesWithPriority}
+      setProcesses={setProcesses}
       calculateScheduling={calculatePreemptivePriority}
       additionalFields={additionalFields}
     />

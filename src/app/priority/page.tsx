@@ -79,9 +79,9 @@ export default function PriorityPage() {
   };
 
   const defaultProcesses = [
-    { name: "P1", arrival: 0, burst: 0, priority: 0 },
-    { name: "P2", arrival: 0, burst: 0, priority: 0 },
-    { name: "P3", arrival: 0, burst: 0, priority: 0 }
+    { name: "P1", arrival: 0, burst: 4, priority: 2 },
+    { name: "P2", arrival: 1, burst: 3, priority: 1 },
+    { name: "P3", arrival: 2, burst: 5, priority: 3 }
   ];
 
   return (
