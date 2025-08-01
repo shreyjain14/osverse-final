@@ -56,9 +56,7 @@ interface SchedulingTemplateProps {
 function generateGanttGLB(gantt: GanttEntry[]): Promise<Blob> {
   return new Promise(async (resolve, reject) => {
     try {
-      // @ts-expect-error: No types for three
       const THREE = await import("three");
-      // @ts-expect-error: No types for GLTFExporter
       const { GLTFExporter } = await import("three/examples/jsm/exporters/GLTFExporter.js");
       
       // Create scene
@@ -524,7 +522,6 @@ export default function SchedulingTemplate({
         </div>
       </div>
 
-<<<<<<< HEAD
       <SimpleARModal 
         open={arOpen} 
         onClose={() => setArOpen(false)} 
@@ -532,8 +529,7 @@ export default function SchedulingTemplate({
         glbUrl={ganttGlbUrl} 
         title={title}
       />
-=======
-      {/* Gantt Chart */}
+      {/* Gantt Chart
       <Card className="max-w-4xl w-full p-6 mt-8">
         <h2 className={`text-xl font-semibold mb-4 ${colorScheme.primary}`}>Gantt Chart</h2>
         <ClassicGanttChart gantt={gantt} />
@@ -548,8 +544,7 @@ export default function SchedulingTemplate({
             </Link>
           </div>
         )}
-      </Card>
->>>>>>> f1dfd0b6f81c3210478e8f5189debf13e5b17097
+      </Card> */}
     </div>
   );
 } 
