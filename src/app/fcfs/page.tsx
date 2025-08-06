@@ -23,20 +23,37 @@ interface SchedulingResult {
 }
 
 function calculateFCFS(processes: Process[]): SchedulingResult {
+  // Sort processes by arrival time (FCFS order)
+  const sortedProcesses = [...processes].sort((a, b) => a.arrival - b.arrival);
+
   let time = 0;
   let gantt: GanttEntry[] = [];
-  let totalTAT = 0, totalWT = 0;
-  const results = processes.map((p, i) => {
+  let totalTAT = 0,
+    totalWT = 0;
+
+  const results = sortedProcesses.map((p) => {
+    // If the process hasn't arrived yet, CPU is idle until it arrives
+    if (time < p.arrival) {
+      // Add idle time to gantt chart if needed
+      if (gantt.length > 0 && time < p.arrival) {
+        gantt.push({ name: "Idle", start: time, end: p.arrival });
+      }
+      time = p.arrival;
+    }
+
     const start = time;
-    time = Math.max(time, p.arrival) + p.burst;
-    const finish = time;
+    const finish = start + p.burst;
+    time = finish;
+
     const tat = finish - p.arrival;
     const wt = tat - p.burst;
     totalTAT += tat;
     totalWT += wt;
+
     gantt.push({ name: p.name, start, end: finish });
     return { ...p, finish, tat, wt };
   });
+
   return {
     results,
     avgTAT: (totalTAT / processes.length).toFixed(2),
@@ -48,14 +65,15 @@ function calculateFCFS(processes: Process[]): SchedulingResult {
 export default function FCFSPage() {
   const [processes, setProcesses] = useState<Process[]>([
     { name: "P1", arrival: 0, burst: 4 },
-    { name: "P2", arrival: 1, burst: 3 },
+    { name: "P2", arrival: 2, burst: 3 },
+    { name: "P3", arrival: 6, burst: 2 },
   ]);
 
   const colorScheme = {
     primary: "text-pink-700",
     secondary: "bg-pink-100 text-pink-700",
     accent: "from-pink-400 to-pink-600",
-    bg: "from-pink-100 via-orange-50 to-yellow-100"
+    bg: "from-pink-100 via-orange-50 to-yellow-100",
   };
 
   return (
@@ -69,4 +87,4 @@ export default function FCFSPage() {
       calculateScheduling={calculateFCFS}
     />
   );
-} 
+}
