@@ -75,11 +75,12 @@ interface SchedulingTemplateProps {
 function generateGanttGLB(gantt: GanttEntry[]): Promise<Blob> {
   return new Promise(async (resolve, reject) => {
     try {
-      
       const THREE = await import("three");
-      
-      const { GLTFExporter } = await import("three/examples/jsm/exporters/GLTFExporter.js");
-      
+
+      const { GLTFExporter } = await import(
+        "three/examples/jsm/exporters/GLTFExporter.js"
+      );
+
       // Create scene
       const scene = new THREE.Scene();
 
@@ -157,21 +158,38 @@ export default function SchedulingTemplate({
   additionalFields,
   defaultProcesses = [],
 }: SchedulingTemplateProps) {
-  const [tableProcesses, setTableProcesses] = useState<Process[]>([
-    { name: "P1", arrival: 0, burst: 0 },
-    { name: "P2", arrival: 0, burst: 0 },
-    { name: "P3", arrival: 0, burst: 0 },
-  ]);
+  const [tableProcesses, setTableProcesses] = useState<Process[]>(() => {
+    // Initialize with default processes if provided, otherwise use empty processes
+    if (defaultProcesses.length > 0) {
+      return [...defaultProcesses]; // Create a copy to avoid mutation
+    }
+    return [
+      { name: "P1", arrival: 0, burst: 0 },
+      { name: "P2", arrival: 0, burst: 0 },
+      { name: "P3", arrival: 0, burst: 0 },
+    ];
+  });
 
   // Initialize table processes with default processes if provided
   React.useEffect(() => {
     if (defaultProcesses.length > 0) {
-      setTableProcesses(defaultProcesses);
-      // Auto-apply the default processes
-      const validProcesses = defaultProcesses.filter((p) => p.burst > 0);
-      setProcesses(validProcesses);
+      const processesToSet = [...defaultProcesses]; // Create a copy
+      setTableProcesses(processesToSet);
+      // Auto-apply the default processes that have valid burst times
+      const validProcesses = processesToSet.filter((p) => p.burst > 0);
+      if (validProcesses.length > 0) {
+        setProcesses(validProcesses);
+      }
     }
   }, [defaultProcesses, setProcesses]);
+
+  // Also ensure that if processes are already set, they are reflected in the table
+  React.useEffect(() => {
+    if (processes.length > 0 && tableProcesses.every((p) => p.burst === 0)) {
+      // If we have active processes but table shows empty, sync the table
+      setTableProcesses([...processes]); // Create a copy
+    }
+  }, [processes, tableProcesses]);
 
   const { results, avgTAT, avgWT, gantt } = calculateScheduling(processes);
 
@@ -305,208 +323,199 @@ export default function SchedulingTemplate({
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Process Input */}
-          <div className="lg:col-span-1 space-y-6">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <Card className="p-6 shadow-soft border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                    <Settings className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-                    Process Configuration
-                  </h2>
-                </div>
+        {/* Process Configuration - Full Width at Top */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="mb-8"
+        >
+          <Card className="p-6 shadow-soft border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <Settings className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+                Process Configuration
+              </h2>
+            </div>
 
-                <div className="space-y-4">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-slate-200 dark:border-slate-700">
-                          <th className="px-3 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-300">
-                            Process
-                          </th>
-                          <th className="px-3 py-3 text-center text-sm font-medium text-slate-700 dark:text-slate-300">
-                            Arrival
-                          </th>
-                          <th className="px-3 py-3 text-center text-sm font-medium text-slate-700 dark:text-slate-300">
-                            Burst
-                          </th>
-                          {additionalFields && (
-                            <th className="px-3 py-3 text-center text-sm font-medium text-slate-700 dark:text-slate-300">
-                              {tableProcesses[0]?.priority !== undefined
-                                ? "Priority"
-                                : tableProcesses[0]?.deadline !== undefined
-                                ? "Deadline"
-                                : tableProcesses[0]?.tickets !== undefined
-                                ? "Tickets"
-                                : tableProcesses[0]?.group !== undefined
-                                ? "Group"
-                                : "Additional"}
-                            </th>
-                          )}
-                          <th className="px-3 py-3 text-center text-sm font-medium text-slate-700 dark:text-slate-300">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                        {tableProcesses.map((process, index) => (
-                          <motion.tr
-                            key={index}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+            <div className="space-y-4">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-700">
+                      <th className="px-3 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-300">
+                        Process
+                      </th>
+                      <th className="px-3 py-3 text-center text-sm font-medium text-slate-700 dark:text-slate-300">
+                        Arrival
+                      </th>
+                      <th className="px-3 py-3 text-center text-sm font-medium text-slate-700 dark:text-slate-300">
+                        Burst
+                      </th>
+                      {additionalFields && (
+                        <th className="px-3 py-3 text-center text-sm font-medium text-slate-700 dark:text-slate-300">
+                          {tableProcesses[0]?.priority !== undefined
+                            ? "Priority"
+                            : tableProcesses[0]?.deadline !== undefined
+                            ? "Deadline"
+                            : tableProcesses[0]?.tickets !== undefined
+                            ? "Tickets"
+                            : tableProcesses[0]?.group !== undefined
+                            ? "Group"
+                            : "Additional"}
+                        </th>
+                      )}
+                      <th className="px-3 py-3 text-center text-sm font-medium text-slate-700 dark:text-slate-300">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                    {tableProcesses.map((process, index) => (
+                      <motion.tr
+                        key={index}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                      >
+                        <td className="px-3 py-3">
+                          <Input
+                            value={process.name}
+                            onChange={(e) =>
+                              updateProcess(index, "name", e.target.value)
+                            }
+                            className="w-20 text-center text-sm"
+                            placeholder="P1"
+                          />
+                        </td>
+                        <td className="px-3 py-3">
+                          <Input
+                            type="number"
+                            min="0"
+                            value={process.arrival}
+                            onChange={(e) =>
+                              updateProcess(
+                                index,
+                                "arrival",
+                                Number(e.target.value) || 0
+                              )
+                            }
+                            className="w-20 text-center text-sm"
+                            placeholder="0"
+                          />
+                        </td>
+                        <td className="px-3 py-3">
+                          <Input
+                            type="number"
+                            min="0"
+                            value={process.burst}
+                            onChange={(e) =>
+                              updateProcess(
+                                index,
+                                "burst",
+                                Number(e.target.value) || 0
+                              )
+                            }
+                            className="w-20 text-center text-sm"
+                            placeholder="0"
+                          />
+                        </td>
+                        {additionalFields && (
+                          <td className="px-3 py-3">
+                            <Input
+                              type={
+                                process.priority !== undefined ||
+                                process.deadline !== undefined ||
+                                process.tickets !== undefined
+                                  ? "number"
+                                  : "text"
+                              }
+                              min={
+                                process.priority !== undefined ||
+                                process.deadline !== undefined ||
+                                process.tickets !== undefined
+                                  ? "0"
+                                  : undefined
+                              }
+                              value={
+                                process.priority ||
+                                process.deadline ||
+                                process.tickets ||
+                                process.group ||
+                                ""
+                              }
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                if (process.priority !== undefined) {
+                                  updateProcess(
+                                    index,
+                                    "priority",
+                                    Number(value) || 0
+                                  );
+                                } else if (process.deadline !== undefined) {
+                                  updateProcess(
+                                    index,
+                                    "deadline",
+                                    Number(value) || 0
+                                  );
+                                } else if (process.tickets !== undefined) {
+                                  updateProcess(
+                                    index,
+                                    "tickets",
+                                    Number(value) || 0
+                                  );
+                                } else if (process.group !== undefined) {
+                                  updateProcess(index, "group", value);
+                                }
+                              }}
+                              className="w-20 text-center text-sm"
+                              placeholder={
+                                process.priority !== undefined
+                                  ? "0"
+                                  : process.deadline !== undefined
+                                  ? "0"
+                                  : process.tickets !== undefined
+                                  ? "0"
+                                  : process.group !== undefined
+                                  ? "A"
+                                  : "Additional"
+                              }
+                            />
+                          </td>
+                        )}
+                        <td className="px-3 py-3 text-center">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeProcess(index)}
+                            disabled={tableProcesses.length === 1}
+                            className="text-red-600 hover:text-red-800 hover:bg-red-50 dark:hover:bg-red-900/20 p-2"
                           >
-                            <td className="px-3 py-3">
-                              <Input
-                                value={process.name}
-                                onChange={(e) =>
-                                  updateProcess(index, "name", e.target.value)
-                                }
-                                className="w-20 text-center text-sm"
-                                placeholder="P1"
-                              />
-                            </td>
-                            <td className="px-3 py-3">
-                              <Input
-                                type="number"
-                                min="0"
-                                value={process.arrival}
-                                onChange={(e) =>
-                                  updateProcess(
-                                    index,
-                                    "arrival",
-                                    Number(e.target.value) || 0
-                                  )
-                                }
-                                className="w-20 text-center text-sm"
-                                placeholder="0"
-                              />
-                            </td>
-                            <td className="px-3 py-3">
-                              <Input
-                                type="number"
-                                min="0"
-                                value={process.burst}
-                                onChange={(e) =>
-                                  updateProcess(
-                                    index,
-                                    "burst",
-                                    Number(e.target.value) || 0
-                                  )
-                                }
-                                className="w-20 text-center text-sm"
-                                placeholder="0"
-                              />
-                            </td>
-                            {additionalFields && (
-                              <td className="px-3 py-3">
-                                <Input
-                                  type={
-                                    process.priority !== undefined ||
-                                    process.deadline !== undefined ||
-                                    process.tickets !== undefined
-                                      ? "number"
-                                      : "text"
-                                  }
-                                  min={
-                                    process.priority !== undefined ||
-                                    process.deadline !== undefined ||
-                                    process.tickets !== undefined
-                                      ? "0"
-                                      : undefined
-                                  }
-                                  value={
-                                    process.priority ||
-                                    process.deadline ||
-                                    process.tickets ||
-                                    process.group ||
-                                    ""
-                                  }
-                                  onChange={(e) => {
-                                    const value = e.target.value;
-                                    if (process.priority !== undefined) {
-                                      updateProcess(
-                                        index,
-                                        "priority",
-                                        Number(value) || 0
-                                      );
-                                    } else if (process.deadline !== undefined) {
-                                      updateProcess(
-                                        index,
-                                        "deadline",
-                                        Number(value) || 0
-                                      );
-                                    } else if (process.tickets !== undefined) {
-                                      updateProcess(
-                                        index,
-                                        "tickets",
-                                        Number(value) || 0
-                                      );
-                                    } else if (process.group !== undefined) {
-                                      updateProcess(index, "group", value);
-                                    }
-                                  }}
-                                  className="w-20 text-center text-sm"
-                                  placeholder={
-                                    process.priority !== undefined
-                                      ? "0"
-                                      : process.deadline !== undefined
-                                      ? "0"
-                                      : process.tickets !== undefined
-                                      ? "0"
-                                      : process.group !== undefined
-                                      ? "A"
-                                      : "Additional"
-                                  }
-                                />
-                              </td>
-                            )}
-                            <td className="px-3 py-3 text-center">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeProcess(index)}
-                                disabled={tableProcesses.length === 1}
-                                className="text-red-600 hover:text-red-800 hover:bg-red-50 dark:hover:bg-red-900/20 p-2"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </td>
-                          </motion.tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-                  <div className="flex gap-3 pt-4">
-                    <Button
-                      onClick={addProcess}
-                      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-soft"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add Process
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
+              <div className="flex gap-3 pt-4">
+                <Button
+                  onClick={addProcess}
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-soft"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Process
+                </Button>
+              </div>
 
-            {/* Active Processes */}
-            {processes.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-              >
-                <Card className="p-6 shadow-soft border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+              {/* Active Processes Display */}
+              {processes.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
                       <Play className="w-5 h-5 text-green-600 dark:text-green-400" />
@@ -552,137 +561,137 @@ export default function SchedulingTemplate({
                       </motion.span>
                     ))}
                   </div>
-                </Card>
-              </motion.div>
-            )}
-          </div>
+                </div>
+              )}
+            </div>
+          </Card>
+        </motion.div>
 
-          {/* Right Column - Results and Charts */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Statistics */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-            >
-              <Card className="p-6 shadow-soft border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                    <Calculator className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+        {/* Results and Charts - Full Width */}
+        <div className="space-y-6">
+          {/* Statistics */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            <Card className="p-6 shadow-soft border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                  <Calculator className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+                  Performance Metrics
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6 mb-8">
+                <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                    {avgTAT}
+                  </div>
+                  <div className="text-sm text-slate-600 dark:text-slate-300 font-medium">
+                    Average Turnaround Time
+                  </div>
+                </div>
+                <div className="text-center p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200 dark:border-green-800">
+                  <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
+                    {avgWT}
+                  </div>
+                  <div className="text-sm text-slate-600 dark:text-slate-300 font-medium">
+                    Average Waiting Time
+                  </div>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-center">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-700">
+                      <th className="px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-300">
+                        Process
+                      </th>
+                      <th className="px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-300">
+                        Arrival
+                      </th>
+                      <th className="px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-300">
+                        Burst
+                      </th>
+                      <th className="px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-300">
+                        Finish
+                      </th>
+                      <th className="px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-300">
+                        TAT
+                      </th>
+                      <th className="px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-300">
+                        WT
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                    {results.map((p, i) => (
+                      <motion.tr
+                        key={i}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                      >
+                        <td className="px-4 py-3 font-semibold text-slate-900 dark:text-white">
+                          {p.name}
+                        </td>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                          {p.arrival}
+                        </td>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                          {p.burst}
+                        </td>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                          {p.finish}
+                        </td>
+                        <td className="px-4 py-3 text-blue-600 dark:text-blue-400 font-medium">
+                          {p.tat}
+                        </td>
+                        <td className="px-4 py-3 text-green-600 dark:text-green-400 font-medium">
+                          {p.wt}
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </motion.div>
+
+          {/* Gantt Chart */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+          >
+            <Card className="p-6 shadow-soft border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                    <BarChart3 className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                   </div>
                   <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-                    Performance Metrics
+                    Gantt Chart Visualization
                   </h2>
                 </div>
-
-                <div className="grid grid-cols-2 gap-6 mb-8">
-                  <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
-                    <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                      {avgTAT}
-                    </div>
-                    <div className="text-sm text-slate-600 dark:text-slate-300 font-medium">
-                      Average Turnaround Time
-                    </div>
-                  </div>
-                  <div className="text-center p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200 dark:border-green-800">
-                    <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
-                      {avgWT}
-                    </div>
-                    <div className="text-sm text-slate-600 dark:text-slate-300 font-medium">
-                      Average Waiting Time
-                    </div>
-                  </div>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-center">
-                    <thead>
-                      <tr className="border-b border-slate-200 dark:border-slate-700">
-                        <th className="px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-300">
-                          Process
-                        </th>
-                        <th className="px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-300">
-                          Arrival
-                        </th>
-                        <th className="px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-300">
-                          Burst
-                        </th>
-                        <th className="px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-300">
-                          Finish
-                        </th>
-                        <th className="px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-300">
-                          TAT
-                        </th>
-                        <th className="px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-300">
-                          WT
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                      {results.map((p, i) => (
-                        <motion.tr
-                          key={i}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: i * 0.05 }}
-                          className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
-                        >
-                          <td className="px-4 py-3 font-semibold text-slate-900 dark:text-white">
-                            {p.name}
-                          </td>
-                          <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
-                            {p.arrival}
-                          </td>
-                          <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
-                            {p.burst}
-                          </td>
-                          <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
-                            {p.finish}
-                          </td>
-                          <td className="px-4 py-3 text-blue-600 dark:text-blue-400 font-medium">
-                            {p.tat}
-                          </td>
-                          <td className="px-4 py-3 text-green-600 dark:text-green-400 font-medium">
-                            {p.wt}
-                          </td>
-                        </motion.tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </Card>
-            </motion.div>
-
-            {/* Gantt Chart */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-            >
-              <Card className="p-6 shadow-soft border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                      <BarChart3 className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                    </div>
-                    <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-                      Gantt Chart Visualization
-                    </h2>
-                  </div>
-                  <Button
-                    onClick={handleOpenAR}
-                    className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-soft"
-                  >
-                    <Eye className="w-4 h-4" />
-                    View in AR
-                  </Button>
-                </div>
-                <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-4">
-                  <ClassicGanttChart gantt={gantt} />
-                </div>
-              </Card>
-            </motion.div>
-          </div>
+                <Button
+                  onClick={handleOpenAR}
+                  className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-soft"
+                >
+                  <Eye className="w-4 h-4" />
+                  View in AR
+                </Button>
+              </div>
+              <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-4">
+                <ClassicGanttChart gantt={gantt} />
+              </div>
+            </Card>
+          </motion.div>
         </div>
       </div>
 
