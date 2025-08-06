@@ -62,6 +62,7 @@ export default function FCFSPage() {
     <SchedulingTemplate
       title="FCFS Scheduling"
       description="First-Come, First-Served (FCFS) is the simplest scheduling algorithm where the process that arrives first is executed first. It is non-preemptive and easy to implement, but can lead to the convoy effect."
+      algorithm="FCFS"
       colorScheme={colorScheme}
       processes={processes}
       setProcesses={setProcesses}

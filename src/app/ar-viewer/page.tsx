@@ -27,12 +27,13 @@ export default function ARViewerPage() {
   useEffect(() => {
     const arParam = searchParams.get('ar');
     const ganttParam = searchParams.get('gantt');
+    const algorithmParam = searchParams.get('algorithm') || 'FCFS';
     
     if (arParam === 'true' && ganttParam) {
       try {
         const parsedGantt = JSON.parse(decodeURIComponent(ganttParam));
         setGanttData(parsedGantt);
-        generateGLB(parsedGantt);
+        generateGLB(parsedGantt, algorithmParam);
       } catch (err) {
         setError('Invalid Gantt data');
         setDownloadState('error');
@@ -43,59 +44,27 @@ export default function ARViewerPage() {
     }
   }, [searchParams]);
 
-  // Generate GLB from Gantt data (simplified - no canvas/model viewer)
-  const generateGLB = async (gantt: GanttEntry[]) => {
+  // Generate GLB from Gantt data using our enhanced API
+  const generateGLB = async (gantt: GanttEntry[], algorithm: string) => {
     try {
-      const THREE = await import("three");
-      const { GLTFExporter } = await import("three/examples/jsm/exporters/GLTFExporter.js");
+      setDownloadState('loading');
       
-      // Create simple scene
-      const scene = new THREE.Scene();
+      // Call our enhanced gantt-model API
+      const apiUrl = `/api/gantt-model?data=${encodeURIComponent(JSON.stringify(gantt))}&algorithm=${encodeURIComponent(algorithm)}`;
+      const response = await fetch(apiUrl);
       
-      // Add bars for each Gantt entry
-      const colors = [0x4f46e5, 0x22d3ee, 0xf59e42, 0x10b981, 0xf43f5e, 0xfbbf24];
-      gantt.forEach((entry, i) => {
-        const width = entry.end - entry.start;
-        const bar = new THREE.Mesh(
-          new THREE.BoxGeometry(width * 0.1, 0.3, 0.5),
-          new THREE.MeshStandardMaterial({ color: colors[i % colors.length] })
-        );
-        bar.position.x = (entry.start + width / 2) * 0.1;
-        bar.position.y = 0.15 + i * 0.4;
-        bar.position.z = 0;
-        scene.add(bar);
-      });
+      if (!response.ok) {
+        throw new Error('Failed to generate model');
+      }
       
-      // Add light
-      const light = new THREE.DirectionalLight(0xffffff, 1);
-      light.position.set(5, 10, 7.5);
-      scene.add(light);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      setGlbUrl(url);
+      setDownloadState('ready');
       
-      // Export to GLB
-      const exporter = new GLTFExporter();
-      exporter.parse(
-        scene,
-        (gltf: ArrayBuffer | { [key: string]: unknown }) => {
-          if (gltf instanceof ArrayBuffer && gltf.byteLength > 0) {
-            const blob = new Blob([gltf], { type: "model/gltf-binary" });
-            const url = URL.createObjectURL(blob);
-            setGlbUrl(url);
-            setDownloadState('ready');
-          } else {
-            setError('Failed to generate 3D model');
-            setDownloadState('error');
-          }
-        },
-        (error: any) => {
-          console.error('GLB generation error:', error);
-          setError('Failed to generate 3D model');
-          setDownloadState('error');
-        },
-        { binary: true }
-      );
     } catch (error) {
       console.error('Failed to generate 3D model:', error);
-      setError('Failed to generate 3D model');
+      setError('Failed to generate enhanced 3D model with text labels');
       setDownloadState('error');
     }
   };

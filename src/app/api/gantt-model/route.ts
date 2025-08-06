@@ -99,64 +99,359 @@ function createRectangularBoxPrimitive(
   return primitive;
 }
 
-// Create visible text using 3D geometry
-function createVisibleTextPrimitive(
+// Create sophisticated 3D text using actual letter shapes
+function createAdvanced3DTextPrimitive(
   doc: Document,
   material: any,
   text: string,
-  size: number = 0.3
+  size: number = 0.3,
+  depth: number = 0.05
 ) {
   const positions: number[] = [];
   const indices: number[] = [];
   let vertexIndex = 0;
 
-  // Create 3D text by building letter shapes
-  const letterWidth = size * 0.6;
-  const letterSpacing = size * 0.7;
-  const thickness = size * 0.1;
+  const letterWidth = size * 0.7;
+  const letterSpacing = size * 0.8;
+  const letterHeight = size;
+  const letterDepth = depth;
 
-  // Helper to add a rectangular character
-  const addCharRect = (x: number, width: number = letterWidth) => {
-    const hw = width / 2;
-    const hh = size / 2;
-    const hd = thickness / 2;
-
-    // Add vertices for this character
-    const baseIndex = vertexIndex;
+  // Helper to add line segment (for drawing letter strokes)
+  const addLineSegment = (x1: number, y1: number, x2: number, y2: number, baseX: number, thickness: number = 0.015) => {
+    const startIdx = positions.length / 3;
     
-    // Front face
-    positions.push(x - hw, -hh, hd, x + hw, -hh, hd, x + hw, hh, hd, x - hw, hh, hd);
-    // Back face  
-    positions.push(x - hw, -hh, -hd, x - hw, hh, -hd, x + hw, hh, -hd, x + hw, -hh, -hd);
-    // Top face
-    positions.push(x - hw, hh, -hd, x - hw, hh, hd, x + hw, hh, hd, x + hw, hh, -hd);
-    // Bottom face
-    positions.push(x - hw, -hh, -hd, x + hw, -hh, -hd, x + hw, -hh, hd, x - hw, -hh, hd);
-    // Right face
-    positions.push(x + hw, -hh, -hd, x + hw, hh, -hd, x + hw, hh, hd, x + hw, -hh, hd);
-    // Left face
-    positions.push(x - hw, -hh, -hd, x - hw, -hh, hd, x - hw, hh, hd, x - hw, hh, -hd);
+    // Calculate direction and perpendicular vectors
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    if (length === 0) return; // Skip zero-length segments
+    
+    const ux = dx / length;
+    const uy = dy / length;
+    const perpX = -uy * thickness;
+    const perpY = ux * thickness;
 
-    // Add indices for faces
-    for (let face = 0; face < 6; face++) {
-      const faceStart = baseIndex + face * 4;
-      indices.push(
-        faceStart, faceStart + 1, faceStart + 2,
-        faceStart, faceStart + 2, faceStart + 3
+    // Create smoother rectangular line segment with rounded ends
+    const hd = letterDepth / 2;
+    const segments = 3; // Add segments for smoother curves
+    
+    // Create main body with multiple segments for smoothness
+    for (let i = 0; i <= segments; i++) {
+      const t = i / segments;
+      const x = x1 + (x2 - x1) * t;
+      const y = y1 + (y2 - y1) * t;
+      
+      // Front face vertices (with slight curve)
+      const curve = Math.sin(t * Math.PI) * 0.01; // Small curve for smoothness
+      positions.push(
+        baseX + x + perpX + curve, y + perpY, hd,
+        baseX + x - perpX - curve, y - perpY, hd
+      );
+      
+      // Back face vertices
+      positions.push(
+        baseX + x + perpX + curve, y + perpY, -hd,
+        baseX + x - perpX - curve, y - perpY, -hd
       );
     }
+
+    const vIdx = vertexIndex + startIdx;
     
-    vertexIndex += 24;
-    return letterSpacing;
+    // Create triangulated surfaces for smoothness
+    for (let i = 0; i < segments; i++) {
+      const base = i * 4;
+      const next = (i + 1) * 4;
+      
+      // Front face triangles
+      indices.push(
+        vIdx + base, vIdx + base + 1, vIdx + next + 1,
+        vIdx + base, vIdx + next + 1, vIdx + next
+      );
+      
+      // Back face triangles
+      indices.push(
+        vIdx + base + 2, vIdx + next + 3, vIdx + base + 3,
+        vIdx + base + 2, vIdx + next + 2, vIdx + next + 3
+      );
+      
+      // Side triangles for smooth connections
+      indices.push(
+        vIdx + base, vIdx + next, vIdx + next + 2,
+        vIdx + base, vIdx + next + 2, vIdx + base + 2
+      );
+      
+      indices.push(
+        vIdx + base + 1, vIdx + base + 3, vIdx + next + 3,
+        vIdx + base + 1, vIdx + next + 3, vIdx + next + 1
+      );
+    }
   };
 
-  // Create simple blocks for each character
+  // Helper to create specific letter shapes
+  const createLetter = (char: string, baseX: number) => {
+    const hw = letterWidth / 2;
+    const hh = letterHeight / 2;
+    
+    switch(char.toUpperCase()) {
+      case 'A':
+        addLineSegment(-hw, -hh, 0, hh, baseX); // Left diagonal
+        addLineSegment(0, hh, hw, -hh, baseX);   // Right diagonal
+        addLineSegment(-hw/2, 0, hw/2, 0, baseX); // Cross bar
+        break;
+        
+      case 'B':
+        addLineSegment(-hw, -hh, -hw, hh, baseX);      // Vertical line
+        addLineSegment(-hw, hh, hw/2, hh, baseX);      // Top horizontal
+        addLineSegment(-hw, 0, hw/3, 0, baseX);        // Middle horizontal
+        addLineSegment(-hw, -hh, hw/2, -hh, baseX);    // Bottom horizontal
+        addLineSegment(hw/2, hh, hw/2, 0, baseX);      // Top right vertical
+        addLineSegment(hw/3, 0, hw/2, -hh, baseX);     // Bottom right vertical
+        break;
+        
+      case 'C':
+        addLineSegment(-hw, -hh, -hw, hh, baseX);      // Vertical line
+        addLineSegment(-hw, hh, hw, hh, baseX);        // Top horizontal
+        addLineSegment(-hw, -hh, hw, -hh, baseX);      // Bottom horizontal
+        break;
+        
+      case 'D':
+        addLineSegment(-hw, -hh, -hw, hh, baseX);      // Vertical line
+        addLineSegment(-hw, hh, hw/2, hh, baseX);      // Top horizontal
+        addLineSegment(-hw, -hh, hw/2, -hh, baseX);    // Bottom horizontal
+        addLineSegment(hw/2, hh, hw, 0, baseX);        // Top right diagonal
+        addLineSegment(hw, 0, hw/2, -hh, baseX);       // Bottom right diagonal
+        break;
+        
+      case 'E':
+        addLineSegment(-hw, -hh, -hw, hh, baseX);      // Vertical line
+        addLineSegment(-hw, hh, hw, hh, baseX);        // Top horizontal
+        addLineSegment(-hw, 0, hw/2, 0, baseX);        // Middle horizontal
+        addLineSegment(-hw, -hh, hw, -hh, baseX);      // Bottom horizontal
+        break;
+        
+      case 'F':
+        addLineSegment(-hw, -hh, -hw, hh, baseX);      // Vertical line
+        addLineSegment(-hw, hh, hw, hh, baseX);        // Top horizontal
+        addLineSegment(-hw, 0, hw/2, 0, baseX);        // Middle horizontal
+        break;
+        
+      case 'G':
+        addLineSegment(-hw, -hh, -hw, hh, baseX);      // Vertical line
+        addLineSegment(-hw, hh, hw, hh, baseX);        // Top horizontal
+        addLineSegment(-hw, -hh, hw, -hh, baseX);      // Bottom horizontal
+        addLineSegment(hw, -hh, hw, 0, baseX);         // Right vertical (partial)
+        addLineSegment(0, 0, hw, 0, baseX);            // Right horizontal
+        break;
+        
+      case 'H':
+        addLineSegment(-hw, -hh, -hw, hh, baseX);      // Left vertical
+        addLineSegment(hw, -hh, hw, hh, baseX);        // Right vertical
+        addLineSegment(-hw, 0, hw, 0, baseX);          // Middle horizontal
+        break;
+        
+      case 'I':
+        addLineSegment(0, -hh, 0, hh, baseX);          // Vertical line
+        addLineSegment(-hw/2, hh, hw/2, hh, baseX);    // Top horizontal
+        addLineSegment(-hw/2, -hh, hw/2, -hh, baseX);  // Bottom horizontal
+        break;
+        
+      case 'J':
+        addLineSegment(hw, hh, hw, -hh/2, baseX);      // Vertical line
+        addLineSegment(hw, -hh/2, 0, -hh, baseX);      // Bottom curve
+        addLineSegment(0, -hh, -hw/2, -hh, baseX);     // Bottom horizontal
+        break;
+        
+      case 'L':
+        addLineSegment(-hw, -hh, -hw, hh, baseX);      // Vertical line
+        addLineSegment(-hw, -hh, hw, -hh, baseX);      // Bottom horizontal
+        break;
+        
+      case 'M':
+        addLineSegment(-hw, -hh, -hw, hh, baseX);      // Left vertical
+        addLineSegment(hw, -hh, hw, hh, baseX);        // Right vertical
+        addLineSegment(-hw, hh, 0, 0, baseX);          // Left diagonal
+        addLineSegment(0, 0, hw, hh, baseX);           // Right diagonal
+        break;
+        
+      case 'N':
+        addLineSegment(-hw, -hh, -hw, hh, baseX);      // Left vertical
+        addLineSegment(hw, -hh, hw, hh, baseX);        // Right vertical
+        addLineSegment(-hw, -hh, hw, hh, baseX);       // Diagonal
+        break;
+        
+      case 'O':
+        addLineSegment(-hw, -hh, -hw, hh, baseX);      // Left vertical
+        addLineSegment(hw, -hh, hw, hh, baseX);        // Right vertical
+        addLineSegment(-hw, hh, hw, hh, baseX);        // Top horizontal
+        addLineSegment(-hw, -hh, hw, -hh, baseX);      // Bottom horizontal
+        break;
+        
+      case 'P':
+        addLineSegment(-hw, -hh, -hw, hh, baseX);      // Vertical line
+        addLineSegment(-hw, hh, hw, hh, baseX);        // Top horizontal
+        addLineSegment(-hw, 0, hw, 0, baseX);          // Middle horizontal
+        addLineSegment(hw, hh, hw, 0, baseX);          // Right vertical (upper)
+        break;
+        
+      case 'Q':
+        addLineSegment(-hw, -hh, -hw, hh, baseX);      // Left vertical
+        addLineSegment(hw, -hh, hw, hh, baseX);        // Right vertical
+        addLineSegment(-hw, hh, hw, hh, baseX);        // Top horizontal
+        addLineSegment(-hw, -hh, hw, -hh, baseX);      // Bottom horizontal
+        addLineSegment(hw/2, -hh/2, hw*1.2, -hh*1.2, baseX); // Tail
+        break;
+        
+      case 'R':
+        addLineSegment(-hw, -hh, -hw, hh, baseX);      // Vertical line
+        addLineSegment(-hw, hh, hw, hh, baseX);        // Top horizontal
+        addLineSegment(-hw, 0, hw, 0, baseX);          // Middle horizontal
+        addLineSegment(hw, hh, hw, 0, baseX);          // Right vertical (upper)
+        addLineSegment(0, 0, hw, -hh, baseX);          // Diagonal leg
+        break;
+        
+      case 'S':
+        addLineSegment(-hw, hh, hw, hh, baseX);        // Top horizontal
+        addLineSegment(-hw, hh, -hw, 0, baseX);        // Left vertical (upper)
+        addLineSegment(-hw, 0, hw, 0, baseX);          // Middle horizontal
+        addLineSegment(hw, 0, hw, -hh, baseX);         // Right vertical (lower)
+        addLineSegment(hw, -hh, -hw, -hh, baseX);      // Bottom horizontal
+        break;
+        
+      case 'T':
+        addLineSegment(-hw, hh, hw, hh, baseX);        // Top horizontal
+        addLineSegment(0, hh, 0, -hh, baseX);          // Vertical line
+        break;
+        
+      case 'U':
+        addLineSegment(-hw, hh, -hw, -hh, baseX);      // Left vertical
+        addLineSegment(hw, hh, hw, -hh, baseX);        // Right vertical
+        addLineSegment(-hw, -hh, hw, -hh, baseX);      // Bottom horizontal
+        break;
+        
+      case 'V':
+        addLineSegment(-hw, hh, 0, -hh, baseX);        // Left diagonal
+        addLineSegment(0, -hh, hw, hh, baseX);         // Right diagonal
+        break;
+        
+      case 'W':
+        addLineSegment(-hw, hh, -hw/2, -hh, baseX);    // Left outer diagonal
+        addLineSegment(-hw/2, -hh, 0, hh/2, baseX);    // Left inner diagonal
+        addLineSegment(0, hh/2, hw/2, -hh, baseX);     // Right inner diagonal
+        addLineSegment(hw/2, -hh, hw, hh, baseX);      // Right outer diagonal
+        break;
+        
+      case 'X':
+        addLineSegment(-hw, hh, hw, -hh, baseX);       // Top-left to bottom-right
+        addLineSegment(-hw, -hh, hw, hh, baseX);       // Bottom-left to top-right
+        break;
+        
+      case 'Y':
+        addLineSegment(-hw, hh, 0, 0, baseX);          // Left diagonal
+        addLineSegment(hw, hh, 0, 0, baseX);           // Right diagonal
+        addLineSegment(0, 0, 0, -hh, baseX);           // Vertical line
+        break;
+        
+      case 'Z':
+        addLineSegment(-hw, hh, hw, hh, baseX);        // Top horizontal
+        addLineSegment(hw, hh, -hw, -hh, baseX);       // Diagonal
+        addLineSegment(-hw, -hh, hw, -hh, baseX);      // Bottom horizontal
+        break;
+        
+      // Numbers
+      case '0':
+        addLineSegment(-hw, -hh, -hw, hh, baseX);      // Left vertical
+        addLineSegment(hw, -hh, hw, hh, baseX);        // Right vertical
+        addLineSegment(-hw, hh, hw, hh, baseX);        // Top horizontal
+        addLineSegment(-hw, -hh, hw, -hh, baseX);      // Bottom horizontal
+        addLineSegment(-hw, -hh, hw, hh, baseX);       // Diagonal
+        break;
+        
+      case '1':
+        addLineSegment(0, -hh, 0, hh, baseX);          // Vertical line
+        addLineSegment(-hw/2, hh/2, 0, hh, baseX);     // Top diagonal
+        break;
+        
+      case '2':
+        addLineSegment(-hw, hh, hw, hh, baseX);        // Top horizontal
+        addLineSegment(hw, hh, hw, 0, baseX);          // Right vertical (upper)
+        addLineSegment(hw, 0, -hw, 0, baseX);          // Middle horizontal
+        addLineSegment(-hw, 0, -hw, -hh, baseX);       // Left vertical (lower)
+        addLineSegment(-hw, -hh, hw, -hh, baseX);      // Bottom horizontal
+        break;
+        
+      case '3':
+        addLineSegment(-hw, hh, hw, hh, baseX);        // Top horizontal
+        addLineSegment(hw, hh, hw, -hh, baseX);        // Right vertical
+        addLineSegment(-hw, 0, hw, 0, baseX);          // Middle horizontal
+        addLineSegment(-hw, -hh, hw, -hh, baseX);      // Bottom horizontal
+        break;
+        
+      case '4':
+        addLineSegment(-hw, hh, -hw, 0, baseX);        // Left vertical (upper)
+        addLineSegment(hw, hh, hw, -hh, baseX);        // Right vertical
+        addLineSegment(-hw, 0, hw, 0, baseX);          // Middle horizontal
+        break;
+        
+      case '5':
+        addLineSegment(-hw, hh, hw, hh, baseX);        // Top horizontal
+        addLineSegment(-hw, hh, -hw, 0, baseX);        // Left vertical (upper)
+        addLineSegment(-hw, 0, hw, 0, baseX);          // Middle horizontal
+        addLineSegment(hw, 0, hw, -hh, baseX);         // Right vertical (lower)
+        addLineSegment(hw, -hh, -hw, -hh, baseX);      // Bottom horizontal
+        break;
+        
+      case '6':
+        addLineSegment(-hw, hh, hw, hh, baseX);        // Top horizontal
+        addLineSegment(-hw, hh, -hw, -hh, baseX);      // Left vertical
+        addLineSegment(-hw, 0, hw, 0, baseX);          // Middle horizontal
+        addLineSegment(hw, 0, hw, -hh, baseX);         // Right vertical (lower)
+        addLineSegment(-hw, -hh, hw, -hh, baseX);      // Bottom horizontal
+        break;
+        
+      case '7':
+        addLineSegment(-hw, hh, hw, hh, baseX);        // Top horizontal
+        addLineSegment(hw, hh, hw/2, -hh, baseX);      // Diagonal
+        break;
+        
+      case '8':
+        addLineSegment(-hw, -hh, -hw, hh, baseX);      // Left vertical
+        addLineSegment(hw, -hh, hw, hh, baseX);        // Right vertical
+        addLineSegment(-hw, hh, hw, hh, baseX);        // Top horizontal
+        addLineSegment(-hw, 0, hw, 0, baseX);          // Middle horizontal
+        addLineSegment(-hw, -hh, hw, -hh, baseX);      // Bottom horizontal
+        break;
+        
+      case '9':
+        addLineSegment(-hw, hh, hw, hh, baseX);        // Top horizontal
+        addLineSegment(-hw, hh, -hw, 0, baseX);        // Left vertical (upper)
+        addLineSegment(hw, hh, hw, -hh, baseX);        // Right vertical
+        addLineSegment(-hw, 0, hw, 0, baseX);          // Middle horizontal
+        addLineSegment(hw, -hh, -hw, -hh, baseX);      // Bottom horizontal
+        break;
+        
+      default:
+        // For unknown characters, create a simple rectangle
+        addLineSegment(-hw, -hh, -hw, hh, baseX);      // Left vertical
+        addLineSegment(hw, -hh, hw, hh, baseX);        // Right vertical
+        addLineSegment(-hw, hh, hw, hh, baseX);        // Top horizontal
+        addLineSegment(-hw, -hh, hw, -hh, baseX);      // Bottom horizontal
+        break;
+    }
+  };
+
+  // Create 3D characters for each letter
   let xOffset = -(text.length * letterSpacing) / 2;
   for (let i = 0; i < text.length; i++) {
     if (text[i] !== ' ') {
-      addCharRect(xOffset);
+      createLetter(text[i], xOffset);
     }
     xOffset += letterSpacing;
+  }
+
+  if (positions.length === 0) {
+    // Create a simple fallback if no geometry was generated
+    positions.push(0, 0, 0, 0.1, 0, 0, 0.1, 0.1, 0);
+    indices.push(0, 1, 2);
   }
 
   const buffer = doc.getRoot().listBuffers()[0] || doc.createBuffer();
@@ -259,6 +554,7 @@ function createTimelinePrimitive(
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
   const ganttData = searchParams.get('data');
+  const algorithm = searchParams.get('algorithm') || 'FCFS'; // Get algorithm type
 
   if (!ganttData) {
     return new NextResponse('Missing gantt data', { status: 400 });
@@ -269,7 +565,7 @@ export async function GET(req: NextRequest) {
 
     const doc = new Document();
     doc.createBuffer();
-    const scene = doc.createScene('Process_Execution_Timeline');
+    const scene = doc.createScene(`${algorithm}_GanttChart_Scene`);
 
     // Calculate chart dimensions to match the 2D layout
     const maxTime = Math.max(...gantt.map((entry: any) => entry.end));
@@ -278,33 +574,45 @@ export async function GET(req: NextRequest) {
     const barDepth = 0.3;
     const chartScale = 1.0; // Scale factor for the entire chart
 
+    // Algorithm-specific information (simplified)
+    const algorithmInfo = {
+      'FCFS': { name: 'First Come First Served' },
+      'SJF': { name: 'Shortest Job First' },
+      'SRTF': { name: 'Shortest Remaining Time First' },
+      'RR': { name: 'Round Robin' },
+      'PRIORITY': { name: 'Priority Scheduling' },
+      'MLFQ': { name: 'Multi-Level Feedback Queue' }
+    };
+
+    const currentAlgorithm = algorithmInfo[algorithm as keyof typeof algorithmInfo] || algorithmInfo['FCFS'];
+
     // Create materials matching the image colors
     const processColorMap = new Map<string, { material: any, color: string }>();
     const imageColors = ['#4285F4', '#34A853', '#EA4335', '#FBBC04', '#9C27B0']; // Blue, Green, Red, Yellow, Purple
     
     let colorIndex = 0;
 
-    // Create text material (dark for visibility)
+    // Create text material (smooth and clear)
     const textMaterial = doc.createMaterial('Text')
-      .setBaseColorFactor([0.2, 0.2, 0.2, 1])
-      .setMetallicFactor(0)
-      .setRoughnessFactor(0.9)
-      .setEmissiveFactor([0.1, 0.1, 0.1]);
+      .setBaseColorFactor([0.05, 0.05, 0.05, 1])
+      .setMetallicFactor(0.1)
+      .setRoughnessFactor(0.4)
+      .setEmissiveFactor([0.2, 0.2, 0.2]);
 
-    // Create title "Process Execution Timeline" at the top
-    const titlePrimitive = createVisibleTextPrimitive(doc, textMaterial, 'Process Execution Timeline', 0.4);
+    // Create algorithm-specific title
+    const titlePrimitive = createAdvanced3DTextPrimitive(doc, textMaterial, `${currentAlgorithm.name}`, 0.35, 0.07);
     const titleMesh = doc.createMesh('Chart_Title').addPrimitive(titlePrimitive);
     const titleNode = doc.createNode('Title_Node')
       .setMesh(titleMesh)
-      .setTranslation([maxTime / 2, 2.0, 0]);
+      .setTranslation([maxTime / 2, 2.2, 0]);
     scene.addChild(titleNode);
 
     // Create "Total Time: X units" label
-    const totalTimePrimitive = createVisibleTextPrimitive(doc, textMaterial, `Total Time: ${maxTime} units`, 0.25);
+    const totalTimePrimitive = createAdvanced3DTextPrimitive(doc, textMaterial, `Total Time: ${maxTime} units`, 0.25, 0.05);
     const totalTimeMesh = doc.createMesh('Total_Time').addPrimitive(totalTimePrimitive);
     const totalTimeNode = doc.createNode('TotalTime_Node')
       .setMesh(totalTimeMesh)
-      .setTranslation([maxTime - 1, 1.5, 0]);
+      .setTranslation([maxTime - 1, 1.8, 0]);
     scene.addChild(totalTimeNode);
 
     // Create process bars in a single row (like the image)
@@ -344,12 +652,20 @@ export async function GET(req: NextRequest) {
       scene.addChild(node);
 
       // Create process name label on the bar (like "P1", "P2")
-      const labelPrimitive = createVisibleTextPrimitive(doc, textMaterial, name, 0.3);
+      const labelPrimitive = createAdvanced3DTextPrimitive(doc, textMaterial, name, 0.3, 0.06);
       const labelMesh = doc.createMesh(`Label_${name}`).addPrimitive(labelPrimitive);
       const labelNode = doc.createNode(`Label_${name}`)
         .setMesh(labelMesh)
         .setTranslation([xPosition, 0, 0.4]);
       scene.addChild(labelNode);
+
+      // Add execution time on the bar
+      const durationLabelPrimitive = createAdvanced3DTextPrimitive(doc, textMaterial, `${duration}u`, 0.15, 0.03);
+      const durationLabelMesh = doc.createMesh(`Duration_${name}`).addPrimitive(durationLabelPrimitive);
+      const durationLabelNode = doc.createNode(`Duration_${name}_Node`)
+        .setMesh(durationLabelMesh)
+        .setTranslation([xPosition, -0.2, 0.2]);
+      scene.addChild(durationLabelNode);
     });
 
     // Create time markers at the bottom (like 0, 4, 7 in the image)
@@ -371,7 +687,7 @@ export async function GET(req: NextRequest) {
       scene.addChild(markerNode);
 
       // Create time label
-      const timeLabelPrimitive = createVisibleTextPrimitive(doc, textMaterial, time.toString(), 0.2);
+      const timeLabelPrimitive = createAdvanced3DTextPrimitive(doc, textMaterial, time.toString(), 0.2, 0.04);
       const timeLabelMesh = doc.createMesh(`TimeLabel_${time}`).addPrimitive(timeLabelPrimitive);
       const timeLabelNode = doc.createNode(`TimeLabel_${time}_Node`)
         .setMesh(timeLabelMesh)
@@ -394,7 +710,7 @@ export async function GET(req: NextRequest) {
       scene.addChild(legendSquareNode);
 
       // Create legend label
-      const legendLabelPrimitive = createVisibleTextPrimitive(doc, textMaterial, name, 0.15);
+      const legendLabelPrimitive = createAdvanced3DTextPrimitive(doc, textMaterial, name, 0.15, 0.03);
       const legendLabelMesh = doc.createMesh(`LegendLabel_${name}`).addPrimitive(legendLabelPrimitive);
       const legendLabelNode = doc.createNode(`LegendLabel_${name}_Node`)
         .setMesh(legendLabelMesh)
@@ -403,6 +719,14 @@ export async function GET(req: NextRequest) {
 
       legendX += 1.5; // Space between legend items
     });
+
+    // Add axis labels
+    const timeAxisPrimitive = createAdvanced3DTextPrimitive(doc, textMaterial, 'TIME UNITS', 0.18, 0.03);
+    const timeAxisMesh = doc.createMesh('TimeAxis').addPrimitive(timeAxisPrimitive);
+    const timeAxisNode = doc.createNode('TimeAxis_Node')
+      .setMesh(timeAxisMesh)
+      .setTranslation([maxTime / 2, -1.4, 0]);
+    scene.addChild(timeAxisNode);
 
     // Create a subtle background base
     const baseMaterial = doc.createMaterial('Base')
@@ -425,7 +749,7 @@ export async function GET(req: NextRequest) {
       status: 200,
       headers: {
         'Content-Type': 'model/gltf-binary',
-        'Content-Disposition': 'attachment; filename="process-execution-timeline.glb"',
+        'Content-Disposition': `attachment; filename="${algorithm.toLowerCase()}-gantt-chart.glb"`,
         'Cache-Control': 'no-cache',
       },
     });

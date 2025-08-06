@@ -49,6 +49,7 @@ interface SimpleARModalProps {
   gantt: GanttEntry[];
   glbUrl: string | null;
   title: string;
+  algorithm?: string; // Optional algorithm parameter
 }
 
 // Simple device detection
@@ -86,7 +87,8 @@ export default function SimpleARModal({
   onClose, 
   gantt, 
   glbUrl, 
-  title 
+  title,
+  algorithm = 'FCFS' // Default to FCFS if not provided
 }: SimpleARModalProps) {
   const [arState, setArState] = useState<'checking' | 'ready' | 'permission-denied' | 'unsupported' | 'loading'>('checking');
   const [cameraPermission, setCameraPermission] = useState<boolean | null>(null);
@@ -222,7 +224,7 @@ export default function SimpleARModal({
   // Generate share URL and QR code
   const generateShareContent = () => {
     const baseUrl = window.location.origin;
-    const arUrl = `${baseUrl}/ar-viewer?ar=true&gantt=${encodeURIComponent(JSON.stringify(gantt))}`;
+    const arUrl = `${baseUrl}/ar-viewer?ar=true&gantt=${encodeURIComponent(JSON.stringify(gantt))}&algorithm=${encodeURIComponent(algorithm)}`;
     setShareUrl(arUrl);
     setShowQR(true);
   };

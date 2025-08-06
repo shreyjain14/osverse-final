@@ -40,6 +40,7 @@ interface SchedulingResult {
 interface SchedulingTemplateProps {
   title: string;
   description: string;
+  algorithm: string; // Add algorithm identifier
   colorScheme: {
     primary: string;
     secondary: string;
@@ -130,6 +131,7 @@ function generateGanttGLB(gantt: GanttEntry[]): Promise<Blob> {
 export default function SchedulingTemplate({
   title,
   description,
+  algorithm,
   colorScheme,
   processes,
   setProcesses,
@@ -531,6 +533,7 @@ export default function SchedulingTemplate({
         gantt={gantt} 
         glbUrl={ganttGlbUrl} 
         title={title}
+        algorithm={algorithm}
       />
     </div>
   );
