@@ -58,6 +58,7 @@ interface SchedulingResult {
 interface SchedulingTemplateProps {
   title: string;
   description: string;
+  algorithm: string; // Add algorithm identifier
   colorScheme: {
     primary: string;
     secondary: string;
@@ -74,11 +75,11 @@ interface SchedulingTemplateProps {
 function generateGanttGLB(gantt: GanttEntry[]): Promise<Blob> {
   return new Promise(async (resolve, reject) => {
     try {
+      
       const THREE = await import("three");
-      const { GLTFExporter } = await import(
-        "three/examples/jsm/exporters/GLTFExporter.js"
-      );
-
+      
+      const { GLTFExporter } = await import("three/examples/jsm/exporters/GLTFExporter.js");
+      
       // Create scene
       const scene = new THREE.Scene();
 
@@ -125,9 +126,10 @@ function generateGanttGLB(gantt: GanttEntry[]): Promise<Blob> {
       const exporter = new GLTFExporter();
       exporter.parse(
         scene,
-        (gltf: ArrayBuffer) => {
-          if (gltf && gltf.byteLength > 0) {
-            const blob = new Blob([gltf], { type: "model/gltf-binary" });
+        (gltf: ArrayBuffer | { [key: string]: unknown }) => {
+          const gltfBuffer = gltf as ArrayBuffer;
+          if (gltfBuffer && gltfBuffer.byteLength > 0) {
+            const blob = new Blob([gltfBuffer], { type: "model/gltf-binary" });
             resolve(blob);
           } else {
             reject(new Error("Failed to generate GLB data"));
@@ -147,6 +149,7 @@ function generateGanttGLB(gantt: GanttEntry[]): Promise<Blob> {
 export default function SchedulingTemplate({
   title,
   description,
+  algorithm,
   colorScheme,
   processes,
   setProcesses,
@@ -689,23 +692,8 @@ export default function SchedulingTemplate({
         gantt={gantt}
         glbUrl={ganttGlbUrl}
         title={title}
+        algorithm={algorithm}
       />
-      {/* Gantt Chart
-      <Card className="max-w-4xl w-full p-6 mt-8">
-        <h2 className={`text-xl font-semibold mb-4 ${colorScheme.primary}`}>Gantt Chart</h2>
-        <ClassicGanttChart gantt={gantt} />
-        {gantt.length > 0 && (
-          <div className="mt-4 text-center">
-            <Link href={`/view-model?data=${encodeURIComponent(JSON.stringify(gantt))}`}>
-              <Button asChild className={`${colorScheme.accent} hover:${colorScheme.primary} text-white`}>
-                <a>
-                  View in 3D / AR
-                </a>
-              </Button>
-            </Link>
-          </div>
-        )}
-      </Card> */}
     </div>
   );
 }

@@ -14,6 +14,29 @@ import {
   Globe
 } from "lucide-react";
 
+// TypeScript declaration for model-viewer component
+declare namespace JSX {
+  interface IntrinsicElements {
+    "model-viewer": React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+      src?: string;
+      ar?: boolean;
+      "ar-modes"?: string;
+      "camera-controls"?: boolean;
+      "auto-rotate"?: boolean;
+      "shadow-intensity"?: string;
+      "ar-scale"?: string;
+      "ar-placement"?: string;
+      "ar-button"?: boolean;
+      "ar-status"?: string;
+      exposure?: string;
+      "environment-image"?: string;
+      alt?: string;
+      style?: React.CSSProperties;
+      onError?: (event: any) => void;
+    };
+  }
+}
+
 interface GanttEntry {
   name: string;
   start: number;
@@ -26,6 +49,7 @@ interface SimpleARModalProps {
   gantt: GanttEntry[];
   glbUrl: string | null;
   title: string;
+  algorithm?: string; // Optional algorithm parameter
 }
 
 // Simple device detection
@@ -63,7 +87,8 @@ export default function SimpleARModal({
   onClose, 
   gantt, 
   glbUrl, 
-  title 
+  title,
+  algorithm = 'FCFS' // Default to FCFS if not provided
 }: SimpleARModalProps) {
   const [arState, setArState] = useState<'checking' | 'ready' | 'permission-denied' | 'unsupported' | 'loading'>('checking');
   const [cameraPermission, setCameraPermission] = useState<boolean | null>(null);
@@ -199,7 +224,7 @@ export default function SimpleARModal({
   // Generate share URL and QR code
   const generateShareContent = () => {
     const baseUrl = window.location.origin;
-    const arUrl = `${baseUrl}/ar-viewer?ar=true&gantt=${encodeURIComponent(JSON.stringify(gantt))}`;
+    const arUrl = `${baseUrl}/ar-viewer?ar=true&gantt=${encodeURIComponent(JSON.stringify(gantt))}&algorithm=${encodeURIComponent(algorithm)}`;
     setShareUrl(arUrl);
     setShowQR(true);
   };
@@ -341,33 +366,31 @@ export default function SimpleARModal({
               <div className="space-y-4">
                 {/* AR Viewer */}
                 <div className="relative">
-                  <model-viewer
-                    ref={modelViewerRef}
-                    src={glbUrl}
-                    ar
-                    ar-modes="scene-viewer quick-look webxr"
-                    ar-scale="fixed"
-                    ar-placement="floor"
-                    ar-button
-                    camera-controls
-                    auto-rotate
-                    shadow-intensity="1"
-                    exposure="1"
-                    environment-image="neutral"
-                    style={{ 
+                  {React.createElement('model-viewer', {
+                    ref: modelViewerRef,
+                    src: glbUrl,
+                    ar: true,
+                    'ar-modes': "scene-viewer quick-look webxr",
+                    'ar-scale': "fixed",
+                    'ar-placement': "floor",
+                    'ar-button': true,
+                    'camera-controls': true,
+                    'auto-rotate': true,
+                    'shadow-intensity': "1",
+                    exposure: "1",
+                    'environment-image': "neutral",
+                    style: { 
                       width: '100%', 
                       height: 400, 
                       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                       borderRadius: '1rem',
                       margin: '0 auto'
-                    }}
-                    alt="3D Gantt chart for AR viewing"
-                    onError={() => setError("Failed to load 3D model")}
-                  >
-                    <div className="text-center text-red-600 mt-2">
-                      Your browser does not support AR features.
-                    </div>
-                  </model-viewer>
+                    },
+                    alt: "3D Gantt chart for AR viewing",
+                    onError: () => setError("Failed to load 3D model")
+                  }, React.createElement('div', {
+                    className: "text-center text-red-600 mt-2"
+                  }, "Your browser does not support AR features."))}
                   
                   {/* AR Session Status */}
                   {arSession && (

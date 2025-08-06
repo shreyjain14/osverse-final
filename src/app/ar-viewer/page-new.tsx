@@ -6,7 +6,7 @@ import {
   AlertTriangle, 
   X, 
   Download,
-  Eye
+  Smartphone
 } from "lucide-react";
 
 interface GanttEntry {
@@ -15,82 +15,91 @@ interface GanttEntry {
   end: number;
 }
 
-// Simple Mobile AR Viewer Component - Download Only
+// Simple Mobile AR Viewer Component
 export default function ARViewerPage() {
   const searchParams = useSearchParams();
   const [ganttData, setGanttData] = useState<GanttEntry[]>([]);
-  const [downloadState, setDownloadState] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [glbUrl, setGlbUrl] = useState<string | null>(null);
 
-  // Parse URL parameters
+  // Parse URL parameters and generate GLB
   useEffect(() => {
     const arParam = searchParams.get('ar');
     const ganttParam = searchParams.get('gantt');
-    const algorithmParam = searchParams.get('algorithm') || 'FCFS';
     
     if (arParam === 'true' && ganttParam) {
       try {
         const parsedGantt = JSON.parse(decodeURIComponent(ganttParam));
         setGanttData(parsedGantt);
-        generateGLB(parsedGantt, algorithmParam);
+        generateGLBDownload(parsedGantt);
       } catch (err) {
         setError('Invalid Gantt data');
-        setDownloadState('error');
+        setIsLoading(false);
       }
     } else {
       setError('Missing AR parameters');
-      setDownloadState('error');
+      setIsLoading(false);
     }
   }, [searchParams]);
 
-  // Generate GLB from Gantt data using our enhanced API
-  const generateGLB = async (gantt: GanttEntry[], algorithm: string) => {
+  // Generate GLB for download
+  const generateGLBDownload = async (gantt: GanttEntry[]) => {
     try {
-      setDownloadState('loading');
+      setIsLoading(true);
       
-      // Call our enhanced gantt-model API
-      const apiUrl = `/api/gantt-model?data=${encodeURIComponent(JSON.stringify(gantt))}&algorithm=${encodeURIComponent(algorithm)}`;
-      const response = await fetch(apiUrl);
+      // Call the API to generate GLB
+      const response = await fetch(`/api/gantt-model?data=${encodeURIComponent(JSON.stringify(gantt))}`);
       
-      if (!response.ok) {
-        throw new Error('Failed to generate model');
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        setGlbUrl(url);
+      } else {
+        setError('Failed to generate 3D model');
       }
-      
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      setGlbUrl(url);
-      setDownloadState('ready');
-      
     } catch (error) {
-      console.error('Failed to generate 3D model:', error);
-      setError('Failed to generate enhanced 3D model with text labels');
-      setDownloadState('error');
+      console.error('Error generating GLB:', error);
+      setError('Failed to generate 3D model');
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  // Handle GLB download
+  const handleDownload = () => {
+    if (!glbUrl) return;
+    
+    const link = document.createElement('a');
+    link.href = glbUrl;
+    link.download = 'gantt-chart.glb';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Loading view
-  if (downloadState === 'loading') {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-4">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <h1 className="text-xl font-semibold text-slate-900">Preparing 3D Model</h1>
-          <p className="text-slate-600">Generating your Gantt chart for AR viewing...</p>
+          <h1 className="text-xl font-semibold text-slate-900">Generating 3D Model</h1>
+          <p className="text-slate-600">Preparing your Gantt chart for AR viewing...</p>
         </div>
       </div>
     );
   }
 
   // Error view
-  if (downloadState === 'error') {
+  if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-4">
         <div className="text-center space-y-4 max-w-md">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
             <AlertTriangle className="w-8 h-8 text-red-600" />
           </div>
-          <h1 className="text-xl font-semibold text-slate-900">Error</h1>
+          <h1 className="text-xl font-semibold text-slate-900">Unable to Generate Model</h1>
           <p className="text-slate-600">{error}</p>
           <Button 
             onClick={() => window.history.back()}
@@ -111,11 +120,11 @@ export default function ARViewerPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-100 rounded-lg">
-                <Eye className="w-5 h-5 text-blue-600" />
+                <Smartphone className="w-5 h-5 text-blue-600" />
               </div>
               <div>
                 <h1 className="text-lg font-semibold text-slate-900">AR Gantt Chart</h1>
-                <p className="text-sm text-slate-500">Download 3D Model</p>
+                <p className="text-sm text-slate-500">3D Model Ready</p>
               </div>
             </div>
             <button 
@@ -131,44 +140,42 @@ export default function ARViewerPage() {
       {/* Content */}
       <div className="p-4">
         <div className="max-w-md mx-auto space-y-6">
-          
           {/* Main Message */}
-          <div className="bg-white rounded-lg p-6 shadow-lg text-center space-y-4">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-              <Download className="w-8 h-8 text-blue-600" />
+          <div className="text-center space-y-4 bg-white rounded-lg p-6 shadow-soft">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+              <Download className="w-8 h-8 text-green-600" />
             </div>
-            <h2 className="text-xl font-semibold text-slate-900">
-              Download 3D Model to View the Gantt Chart in AR
-            </h2>
+            <h2 className="text-xl font-semibold text-slate-900">Download 3D Model</h2>
             <p className="text-slate-600">
-              Your 3D Gantt chart model is ready! Download it to view in your device's AR viewer.
+              Download the 3D model to view the Gantt chart in AR on your device
             </p>
           </div>
 
           {/* Download Button */}
-          <div className="space-y-3">
-            <Button 
-              onClick={() => {
-                if (glbUrl) {
-                  const link = document.createElement('a');
-                  link.href = glbUrl;
-                  link.download = 'gantt-chart.glb';
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                }
-              }}
-              disabled={!glbUrl}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
-            >
-              <Download className="w-5 h-5 mr-2" />
-              Download 3D Model (.glb)
-            </Button>
+          <Button 
+            onClick={handleDownload}
+            disabled={!glbUrl}
+            className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg"
+          >
+            <Download className="w-5 h-5 mr-2" />
+            Download GLB Model
+          </Button>
+
+          {/* Instructions */}
+          <div className="bg-blue-50 rounded-lg p-4">
+            <h3 className="font-semibold text-blue-900 mb-2">How to View in AR</h3>
+            <ol className="text-sm text-blue-800 space-y-1">
+              <li>1. Download the GLB file above</li>
+              <li>2. Open your device's file manager</li>
+              <li>3. Find and tap the downloaded GLB file</li>
+              <li>4. Select "View in AR" or similar option</li>
+              <li>5. Place the Gantt chart in your space!</li>
+            </ol>
           </div>
 
           {/* Gantt Chart Info */}
-          <div className="bg-white rounded-lg p-4 shadow-lg">
-            <h3 className="font-semibold text-slate-900 mb-3">Gantt Chart Data</h3>
+          <div className="bg-white rounded-lg p-4 shadow-soft">
+            <h3 className="font-semibold text-slate-900 mb-2">Gantt Chart Data</h3>
             <div className="space-y-2">
               {ganttData.map((entry, i) => (
                 <div key={i} className="flex justify-between text-sm">
@@ -181,20 +188,17 @@ export default function ARViewerPage() {
             </div>
           </div>
 
-          {/* Instructions */}
-          <div className="bg-blue-50 rounded-lg p-4">
-            <h3 className="font-semibold text-blue-900 mb-2">How to View in AR</h3>
-            <ol className="text-sm text-blue-800 space-y-1">
-              <li>1. Download the 3D model file (.glb)</li>
-              <li>2. Open your device's AR viewer or file manager</li>
-              <li>3. Select the downloaded file</li>
-              <li>4. Your device will launch AR mode automatically</li>
-              <li>5. Point your camera at a flat surface to place the model</li>
-            </ol>
+          {/* Device Compatibility */}
+          <div className="bg-yellow-50 rounded-lg p-4">
+            <h3 className="font-semibold text-yellow-900 mb-2">Device Compatibility</h3>
+            <ul className="text-sm text-yellow-800 space-y-1">
+              <li>• <strong>Android:</strong> Requires ARCore support</li>
+              <li>• <strong>iOS:</strong> Requires iOS 12+ with AR capabilities</li>
+              <li>• <strong>File Format:</strong> GLB (3D Binary Format)</li>
+            </ul>
           </div>
         </div>
       </div>
     </div>
   );
 }
- 
