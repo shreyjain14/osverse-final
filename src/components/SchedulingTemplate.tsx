@@ -69,6 +69,7 @@ interface SchedulingTemplateProps {
   setProcesses: (processes: Process[]) => void;
   calculateScheduling: (processes: Process[]) => SchedulingResult;
   additionalFields?: React.ReactNode;
+  timeQuantumInput?: React.ReactNode;
   defaultProcesses?: Process[];
 }
 
@@ -156,6 +157,7 @@ export default function SchedulingTemplate({
   setProcesses,
   calculateScheduling,
   additionalFields,
+  timeQuantumInput,
   defaultProcesses = [],
 }: SchedulingTemplateProps) {
   const [tableProcesses, setTableProcesses] = useState<Process[]>(() => {
@@ -339,6 +341,9 @@ export default function SchedulingTemplate({
                 Process Configuration
               </h2>
             </div>
+
+            {/* Time Quantum Input for Round Robin */}
+            {timeQuantumInput}
 
             <div className="space-y-4">
               <div className="overflow-x-auto">
