@@ -63,11 +63,13 @@ function calculateFCFS(processes: Process[]): SchedulingResult {
 }
 
 export default function FCFSPage() {
-  const [processes, setProcesses] = useState<Process[]>([
+  const defaultProcesses: Process[] = [
     { name: "P1", arrival: 0, burst: 4 },
     { name: "P2", arrival: 2, burst: 3 },
     { name: "P3", arrival: 6, burst: 2 },
-  ]);
+  ];
+
+  const [processes, setProcesses] = useState<Process[]>(defaultProcesses);
 
   const colorScheme = {
     primary: "text-pink-700",
@@ -85,6 +87,7 @@ export default function FCFSPage() {
       processes={processes}
       setProcesses={setProcesses}
       calculateScheduling={calculateFCFS}
+      defaultProcesses={defaultProcesses}
     />
   );
 }
