@@ -75,10 +75,14 @@ function calculatePreemptivePriority(processes: Process[]): SchedulingResult {
 }
 
 export default function PreemptivePriorityPage() {
-  const [processes, setProcesses] = useState<Process[]>([
+  const defaultProcesses = [
     { name: "P1", arrival: 0, burst: 7, priority: 2 },
     { name: "P2", arrival: 2, burst: 4, priority: 1 },
-  ]);
+    { name: "P3", arrival: 1, burst: 1, priority: 3 },
+    { name: "P4", arrival: 3, burst: 3, priority: 2 },
+  ];
+
+  const [processes, setProcesses] = useState<Process[]>(defaultProcesses);
 
   const colorScheme = {
     primary: "text-purple-700",
@@ -105,11 +109,13 @@ export default function PreemptivePriorityPage() {
     <SchedulingTemplate
       title="Preemptive Priority Scheduling"
       description="Preemptive Priority scheduling executes the highest priority process at every time unit. Lower numbers mean higher priority. If a new process arrives with higher priority, it preempts the running process."
+      algorithm="preemptive-priority"
       colorScheme={colorScheme}
       processes={processes}
       setProcesses={setProcesses}
       calculateScheduling={calculatePreemptivePriority}
       additionalFields={additionalFields}
+      defaultProcesses={defaultProcesses}
     />
   );
 } 

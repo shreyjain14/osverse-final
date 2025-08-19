@@ -63,10 +63,14 @@ function calculateLJF(processes: Process[]): SchedulingResult {
 }
 
 export default function LJFPage() {
-  const [processes, setProcesses] = useState<Process[]>([
+  const defaultProcesses = [
     { name: "P1", arrival: 0, burst: 6 },
     { name: "P2", arrival: 1, burst: 2 },
-  ]);
+    { name: "P3", arrival: 2, burst: 8 },
+    { name: "P4", arrival: 3, burst: 1 },
+  ];
+
+  const [processes, setProcesses] = useState<Process[]>(defaultProcesses);
 
   const colorScheme = {
     primary: "text-orange-700",
@@ -79,10 +83,12 @@ export default function LJFPage() {
     <SchedulingTemplate
       title="Longest Job First (LJF) Scheduling"
       description="Longest Job First (LJF) schedules the process with the largest execution time next. It can lead to high waiting times for short jobs."
+      algorithm="LJF"
       colorScheme={colorScheme}
       processes={processes}
       setProcesses={setProcesses}
       calculateScheduling={calculateLJF}
+      defaultProcesses={defaultProcesses}
     />
   );
 } 

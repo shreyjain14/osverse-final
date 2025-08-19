@@ -323,7 +323,7 @@ export default function SchedulingTemplate({
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-200 bg-clip-text text-transparent mb-4">
+          <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white mb-4 leading-tight">
             {title}
           </h1>
           <p className="text-lg text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
@@ -331,40 +331,42 @@ export default function SchedulingTemplate({
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Process Input */}
-          <div className="lg:col-span-1 space-y-6">
+        {/* First Row - Process Configuration and Performance Metrics */}
+        <div className="flex flex-col lg:flex-row gap-8 mb-8">
+          {/* Process Configuration - Flexible Width */}
+          <div className="lg:w-auto lg:min-w-[400px] lg:max-w-[500px] flex-shrink-0">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
+              className="h-full"
             >
-              <Card className="p-6 shadow-soft border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+              <Card className="p-6 shadow-soft border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm h-full">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                     <Settings className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+                  <h2 className="text-xl font-semibold text-slate-900 dark:text-white leading-relaxed">
                     Process Configuration
                   </h2>
                 </div>
 
                 <div className="space-y-4">
                   <div className="overflow-x-auto">
-                    <table className="w-full">
+                    <table className="w-full min-w-max">
                       <thead>
                         <tr className="border-b border-slate-200 dark:border-slate-700">
-                          <th className="px-3 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-300">
+                          <th className="px-1 py-3 text-left text-xs font-medium text-slate-700 dark:text-slate-300">
                             Process
                           </th>
-                          <th className="px-3 py-3 text-center text-sm font-medium text-slate-700 dark:text-slate-300">
+                          <th className="px-1 py-3 text-center text-xs font-medium text-slate-700 dark:text-slate-300">
                             Arrival
                           </th>
-                          <th className="px-3 py-3 text-center text-sm font-medium text-slate-700 dark:text-slate-300">
+                          <th className="px-1 py-3 text-center text-xs font-medium text-slate-700 dark:text-slate-300">
                             Burst
                           </th>
                           {additionalFields && (
-                            <th className="px-3 py-3 text-center text-sm font-medium text-slate-700 dark:text-slate-300">
+                            <th className="px-1 py-3 text-center text-xs font-medium text-slate-700 dark:text-slate-300">
                               {tableProcesses[0]?.priority !== undefined
                                 ? "Priority"
                                 : tableProcesses[0]?.deadline !== undefined
@@ -376,7 +378,7 @@ export default function SchedulingTemplate({
                                 : "Additional"}
                             </th>
                           )}
-                          <th className="px-3 py-3 text-center text-sm font-medium text-slate-700 dark:text-slate-300">
+                          <th className="px-1 py-3 text-center text-xs font-medium text-slate-700 dark:text-slate-300">
                             Actions
                           </th>
                         </tr>
@@ -390,17 +392,17 @@ export default function SchedulingTemplate({
                             transition={{ delay: index * 0.1 }}
                             className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                           >
-                            <td className="px-3 py-3">
+                            <td className="px-1 py-2">
                               <Input
                                 value={process.name}
                                 onChange={(e) =>
                                   updateProcess(index, "name", e.target.value)
                                 }
-                                className="w-20 text-center text-sm"
+                                className="w-12 text-center text-xs"
                                 placeholder="P1"
                               />
                             </td>
-                            <td className="px-3 py-3">
+                            <td className="px-1 py-2">
                               <Input
                                 type="number"
                                 min="0"
@@ -412,11 +414,11 @@ export default function SchedulingTemplate({
                                     Number(e.target.value) || 0
                                   )
                                 }
-                                className="w-20 text-center text-sm"
+                                className="w-14 text-center text-xs"
                                 placeholder="0"
                               />
                             </td>
-                            <td className="px-3 py-3">
+                            <td className="px-1 py-2">
                               <Input
                                 type="number"
                                 min="0"
@@ -428,12 +430,12 @@ export default function SchedulingTemplate({
                                     Number(e.target.value) || 0
                                   )
                                 }
-                                className="w-20 text-center text-sm"
+                                className="w-14 text-center text-xs"
                                 placeholder="0"
                               />
                             </td>
                             {additionalFields && (
-                              <td className="px-3 py-3">
+                              <td className="px-1 py-2">
                                 <Input
                                   type={
                                     process.priority !== undefined ||
@@ -480,7 +482,7 @@ export default function SchedulingTemplate({
                                       updateProcess(index, "group", value);
                                     }
                                   }}
-                                  className="w-20 text-center text-sm"
+                                  className="w-14 text-center text-xs"
                                   placeholder={
                                     process.priority !== undefined
                                       ? "0"
@@ -495,15 +497,15 @@ export default function SchedulingTemplate({
                                 />
                               </td>
                             )}
-                            <td className="px-3 py-3 text-center">
+                            <td className="px-1 py-2 text-center">
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => removeProcess(index)}
                                 disabled={tableProcesses.length === 1}
-                                className="text-red-600 hover:text-red-800 hover:bg-red-50 dark:hover:bg-red-900/20 p-2"
+                                className="text-red-600 hover:text-red-800 hover:bg-red-50 dark:hover:bg-red-900/20 p-1"
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <Trash2 className="w-3 h-3" />
                               </Button>
                             </td>
                           </motion.tr>
@@ -524,86 +526,29 @@ export default function SchedulingTemplate({
                 </div>
               </Card>
             </motion.div>
-
-            {/* Active Processes */}
-            {processes.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-              >
-                <Card className="p-6 shadow-soft border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                      <Play className="w-5 h-5 text-green-600 dark:text-green-400" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-                      Active Processes
-                    </h3>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {processes.map((p, i) => (
-                      <motion.span
-                        key={i}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: i * 0.1 }}
-                        className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium"
-                      >
-                        {p.name} (A:{p.arrival}, B:{p.burst}
-                        {p.priority && `, Pr:${p.priority}`}
-                        {p.deadline && `, D:${p.deadline}`}
-                        {p.tickets && `, T:${p.tickets}`}
-                        {p.group && `, G:${p.group}`})
-                        <button
-                          onClick={() => {
-                            const newProcesses = processes.filter(
-                              (_, j) => j !== i
-                            );
-                            setProcesses(newProcesses);
-                            // Also sync with table processes
-                            const syncedTableProcesses =
-                              newProcesses.length > 0
-                                ? newProcesses.map((p, idx) => ({
-                                    ...p,
-                                    name: `P${idx + 1}`,
-                                  }))
-                                : [{ name: "P1", arrival: 0, burst: 0 }];
-                            setTableProcesses(syncedTableProcesses);
-                          }}
-                          className="ml-1 hover:opacity-70 transition-opacity"
-                        >
-                          ×
-                        </button>
-                      </motion.span>
-                    ))}
-                  </div>
-                </Card>
-              </motion.div>
-            )}
           </div>
 
-          {/* Right Column - Results and Charts */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Statistics */}
+          {/* Performance Metrics - Takes Remaining Width */}
+          <div className="flex-1">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
+              className="h-full"
             >
-              <Card className="p-6 shadow-soft border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+              <Card className="p-6 shadow-soft border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm h-full">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                     <Calculator className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                   </div>
-                  <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+                  <h2 className="text-xl font-semibold text-slate-900 dark:text-white leading-relaxed">
                     Performance Metrics
                   </h2>
                 </div>
 
                 <div className="grid grid-cols-2 gap-6 mb-8">
                   <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
-                    <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                    <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2 leading-tight">
                       {avgTAT}
                     </div>
                     <div className="text-sm text-slate-600 dark:text-slate-300 font-medium">
@@ -611,7 +556,7 @@ export default function SchedulingTemplate({
                     </div>
                   </div>
                   <div className="text-center p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200 dark:border-green-800">
-                    <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
+                    <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2 leading-tight">
                       {avgWT}
                     </div>
                     <div className="text-sm text-slate-600 dark:text-slate-300 font-medium">
@@ -678,23 +623,25 @@ export default function SchedulingTemplate({
                 </div>
               </Card>
             </motion.div>
+          </div>
+        </div>
 
-            {/* Gantt Chart */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-            >
-              <Card className="p-6 shadow-soft border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                      <BarChart3 className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                    </div>
-                    <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-                      Gantt Chart Visualization
-                    </h2>
-                  </div>
+        {/* Second Row - Full-Width Gantt Chart */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+        >
+          <Card className="p-8 shadow-lg border-0 bg-gradient-to-br from-white to-blue-50 dark:from-slate-800 dark:to-slate-700 backdrop-blur-sm">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 rounded-xl shadow-md">
+                  <BarChart3 className="w-8 h-8 text-orange-600 dark:text-orange-400" />
+                </div>
+                <h2 className="text-3xl font-bold text-slate-900 dark:text-white leading-tight">
+                  Gantt Chart Visualization
+                </h2>
+              </div>
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
@@ -721,23 +668,25 @@ export default function SchedulingTemplate({
                       <Eye className="w-4 h-4" />
                       View in AR
                     </Button>
-                  </div>
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900/50 dark:to-slate-800/50 rounded-xl p-10 border border-blue-100 dark:border-slate-700 shadow-inner">
+              {isAnimatedView ? (
+                <div className="w-full">
+                  <AnimatedGanttChart 
+                    gantt={gantt} 
+                    colorScheme={colorScheme.primary}
+                    algorithm={algorithm}
+                  />
                 </div>
-                <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-4">
-                  {isAnimatedView ? (
-                    <AnimatedGanttChart 
-                      gantt={gantt} 
-                      colorScheme={colorScheme.primary}
-                      algorithm={algorithm}
-                    />
-                  ) : (
-                    <ClassicGanttChart gantt={gantt} />
-                  )}
+              ) : (
+                <div className="w-full">
+                  <ClassicGanttChart gantt={gantt} />
                 </div>
-              </Card>
-            </motion.div>
-          </div>
-        </div>
+              )}
+            </div>
+          </Card>
+        </motion.div>
       </div>
 
       <SimpleARModal

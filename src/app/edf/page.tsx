@@ -7,7 +7,7 @@ interface Process {
   name: string;
   arrival: number;
   burst: number;
-  deadline: number;
+  deadline?: number; // Make it optional to match SchedulingTemplate
 }
 
 interface GanttEntry {
@@ -35,8 +35,10 @@ function calculateEDF(processes: Process[]): SchedulingResult {
     let idx = -1;
     let minDeadline = Infinity;
     for (let i = 0; i < n; i++) {
-      if (!isDone[i] && processes[i].arrival <= time && processes[i].deadline < minDeadline) {
-        minDeadline = processes[i].deadline;
+      if (!isDone[i] && processes[i].arrival <= time && 
+          processes[i].deadline !== undefined && 
+          processes[i].deadline! < minDeadline) {
+        minDeadline = processes[i].deadline!;
         idx = i;
       }
     }
@@ -65,10 +67,14 @@ function calculateEDF(processes: Process[]): SchedulingResult {
 }
 
 export default function EDFPage() {
-  const [processes, setProcesses] = useState<Process[]>([
+  const defaultProcesses = [
     { name: "P1", arrival: 0, burst: 4, deadline: 10 },
     { name: "P2", arrival: 1, burst: 3, deadline: 8 },
-  ]);
+    { name: "P3", arrival: 2, burst: 2, deadline: 5 },
+    { name: "P4", arrival: 3, burst: 1, deadline: 7 },
+  ];
+
+  const [processes, setProcesses] = useState<Process[]>(defaultProcesses);
   const [deadline, setDeadline] = useState("");
 
   const colorScheme = {
@@ -99,11 +105,13 @@ export default function EDFPage() {
     <SchedulingTemplate
       title="Earliest Deadline First (EDF) Scheduling"
       description="EDF schedules the process with the earliest deadline next. It is a dynamic priority scheduling algorithm used in real-time systems."
+      algorithm="EDF"
       colorScheme={colorScheme}
       processes={processes}
       setProcesses={setProcessesWithDeadline}
       calculateScheduling={calculateEDF}
       additionalFields={additionalFields}
+      defaultProcesses={defaultProcesses}
     />
   );
 } 

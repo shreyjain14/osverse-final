@@ -76,10 +76,14 @@ function calculateLottery(processes: Process[]): SchedulingResult {
 }
 
 export default function LotteryPage() {
-  const [processes, setProcesses] = useState<Process[]>([
+  const defaultProcesses = [
     { name: "P1", arrival: 0, burst: 4, tickets: 5 },
     { name: "P2", arrival: 1, burst: 3, tickets: 2 },
-  ]);
+    { name: "P3", arrival: 2, burst: 2, tickets: 8 },
+    { name: "P4", arrival: 3, burst: 1, tickets: 3 },
+  ];
+
+  const [processes, setProcesses] = useState<Process[]>(defaultProcesses);
   const [tickets, setTickets] = useState("");
   const [schedulingResult, setSchedulingResult] = useState<SchedulingResult | null>(null);
   const [isClient, setIsClient] = useState(false);
@@ -130,11 +134,13 @@ export default function LotteryPage() {
     <SchedulingTemplate
       title="Lottery Scheduling"
       description="Lottery scheduling assigns tickets to processes. At each time unit, a random ticket is drawn and the corresponding process runs. More tickets means higher chance to run."
+      algorithm="lottery"
       colorScheme={colorScheme}
       processes={processes}
       setProcesses={setProcessesWithTickets}
       calculateScheduling={(processes: Process[]) => schedulingResult}
       additionalFields={additionalFields}
+      defaultProcesses={defaultProcesses}
     />
   );
 } 

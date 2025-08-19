@@ -32,6 +32,7 @@ function calculateSRTF(processes: Process[]): SchedulingResult {
   let gantt: GanttEntry[] = [];
   let last = -1;
   let totalTAT = 0, totalWT = 0;
+  
   while (completed < n) {
     let idx = -1, minRem = Infinity;
     for (let i = 0; i < n; i++) {
@@ -40,15 +41,23 @@ function calculateSRTF(processes: Process[]): SchedulingResult {
         idx = i;
       }
     }
+    
     if (idx === -1) {
       time++;
       continue;
     }
+    
+    // If we switch to a different process, close the previous gantt entry and start a new one
     if (last !== idx) {
-      gantt.push({ name: processes[idx].name, start: time });
+      if (gantt.length > 0) {
+        gantt[gantt.length - 1].end = time;
+      }
+      gantt.push({ name: processes[idx].name, start: time, end: time + 1 });
     }
+    
     rem[idx]--;
     time++;
+    
     if (rem[idx] === 0) {
       isDone[idx] = true;
       completed++;
@@ -57,12 +66,16 @@ function calculateSRTF(processes: Process[]): SchedulingResult {
       wt[idx] = tat[idx] - processes[idx].burst;
       totalTAT += tat[idx];
       totalWT += wt[idx];
-      gantt[gantt.length - 1].end = time;
-    } else {
+    }
+    
+    // Update the end time of current gantt entry
+    if (gantt.length > 0) {
       gantt[gantt.length - 1].end = time;
     }
+    
     last = idx;
   }
+  
   return {
     results: processes.map((p, i) => ({ ...p, finish: finish[i], tat: tat[i], wt: wt[i] })),
     avgTAT: (totalTAT / n).toFixed(2),
@@ -72,11 +85,14 @@ function calculateSRTF(processes: Process[]): SchedulingResult {
 }
 
 export default function SRTFPage() {
-  const [processes, setProcesses] = useState<Process[]>([
+  const defaultProcesses = [
     { name: "P1", arrival: 0, burst: 8 },
     { name: "P2", arrival: 1, burst: 4 },
     { name: "P3", arrival: 2, burst: 2 },
-  ]);
+    { name: "P4", arrival: 3, burst: 1 },
+  ];
+
+  const [processes, setProcesses] = useState<Process[]>(defaultProcesses);
 
   const colorScheme = {
     primary: "text-cyan-700",
@@ -89,10 +105,12 @@ export default function SRTFPage() {
     <SchedulingTemplate
       title="Preemptive SJF (SRTF) Scheduling"
       description="Shortest Remaining Time First (SRTF) is the preemptive version of SJF. At every time unit, the process with the smallest remaining burst time is selected. This minimizes average waiting time but can cause starvation for longer jobs."
+      algorithm="SRTF"
       colorScheme={colorScheme}
       processes={processes}
       setProcesses={setProcesses}
       calculateScheduling={calculateSRTF}
+      defaultProcesses={defaultProcesses}
     />
   );
 } 

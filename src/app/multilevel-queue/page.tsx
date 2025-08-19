@@ -7,7 +7,7 @@ interface Process {
   name: string;
   arrival: number;
   burst: number;
-  queue: number; // 0 = system, 1 = user
+  queue?: number; // 0 = system, 1 = user - make optional
 }
 
 interface GanttEntry {
@@ -36,8 +36,10 @@ function calculateMultilevelQueue(processes: Process[]): SchedulingResult {
     let idx = -1;
     let minQueue = 2;
     for (let i = 0; i < n; i++) {
-      if (!isDone[i] && processes[i].arrival <= time && processes[i].queue < minQueue) {
-        minQueue = processes[i].queue;
+      if (!isDone[i] && processes[i].arrival <= time && 
+          processes[i].queue !== undefined && 
+          processes[i].queue! < minQueue) {
+        minQueue = processes[i].queue!;
         idx = i;
       }
     }
@@ -66,10 +68,14 @@ function calculateMultilevelQueue(processes: Process[]): SchedulingResult {
 }
 
 export default function MultilevelQueuePage() {
-  const [processes, setProcesses] = useState<Process[]>([
+  const defaultProcesses = [
     { name: "P1", arrival: 0, burst: 4, queue: 0 },
     { name: "P2", arrival: 1, burst: 3, queue: 1 },
-  ]);
+    { name: "P3", arrival: 2, burst: 2, queue: 0 },
+    { name: "P4", arrival: 3, burst: 1, queue: 1 },
+  ];
+
+  const [processes, setProcesses] = useState<Process[]>(defaultProcesses);
   const [queue, setQueue] = useState("0");
 
   const colorScheme = {
@@ -101,11 +107,13 @@ export default function MultilevelQueuePage() {
     <SchedulingTemplate
       title="Multilevel Queue Scheduling"
       description="Multilevel Queue scheduling separates processes into different queues (e.g., system and user), each with its own scheduling policy and priority. System queue always runs before user queue."
+      algorithm="multilevel-queue"
       colorScheme={colorScheme}
       processes={processes}
       setProcesses={setProcessesWithQueue}
       calculateScheduling={calculateMultilevelQueue}
       additionalFields={additionalFields}
+      defaultProcesses={defaultProcesses}
     />
   );
 } 

@@ -67,10 +67,14 @@ function calculateHRRN(processes: Process[]): SchedulingResult {
 }
 
 export default function HRRNPage() {
-  const [processes, setProcesses] = useState<Process[]>([
+  const defaultProcesses = [
     { name: "P1", arrival: 0, burst: 6 },
     { name: "P2", arrival: 1, burst: 2 },
-  ]);
+    { name: "P3", arrival: 2, burst: 4 },
+    { name: "P4", arrival: 3, burst: 3 },
+  ];
+
+  const [processes, setProcesses] = useState<Process[]>(defaultProcesses);
 
   const colorScheme = {
     primary: "text-fuchsia-700",
@@ -83,10 +87,12 @@ export default function HRRNPage() {
     <SchedulingTemplate
       title="Highest Response Ratio Next (HRRN) Scheduling"
       description="HRRN schedules the process with the highest response ratio next. Response ratio = (waiting time + burst time) / burst time. This balances short and long jobs."
+      algorithm="HRRN"
       colorScheme={colorScheme}
       processes={processes}
       setProcesses={setProcesses}
       calculateScheduling={calculateHRRN}
+      defaultProcesses={defaultProcesses}
     />
   );
 } 

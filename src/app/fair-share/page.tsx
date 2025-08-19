@@ -7,7 +7,7 @@ interface Process {
   name: string;
   arrival: number;
   burst: number;
-  group: string;
+  group?: string; // Make optional to match SchedulingTemplate
 }
 
 interface GanttEntry {
@@ -37,8 +37,9 @@ function calculateFairShare(processes: Process[]): SchedulingResult {
   // Group processes by group
   const groupMap: { [group: string]: number[] } = {};
   processes.forEach((p, i) => {
-    if (!groupMap[p.group]) groupMap[p.group] = [];
-    groupMap[p.group].push(i);
+    const group = p.group || "default";
+    if (!groupMap[group]) groupMap[group] = [];
+    groupMap[group].push(i);
   });
   const groupNames = Object.keys(groupMap);
   let groupIdx = 0;
@@ -79,10 +80,14 @@ function calculateFairShare(processes: Process[]): SchedulingResult {
 }
 
 export default function FairSharePage() {
-  const [processes, setProcesses] = useState<Process[]>([
+  const defaultProcesses = [
     { name: "P1", arrival: 0, burst: 4, group: "A" },
     { name: "P2", arrival: 1, burst: 3, group: "B" },
-  ]);
+    { name: "P3", arrival: 2, burst: 2, group: "A" },
+    { name: "P4", arrival: 3, burst: 5, group: "B" },
+  ];
+
+  const [processes, setProcesses] = useState<Process[]>(defaultProcesses);
   const [group, setGroup] = useState("");
 
   const colorScheme = {
@@ -112,11 +117,13 @@ export default function FairSharePage() {
     <SchedulingTemplate
       title="Fair Share Scheduling"
       description="Fair Share Scheduling divides CPU time among groups, then among processes within each group. Groups are scheduled round-robin, then processes within group."
+      algorithm="fair-share"
       colorScheme={colorScheme}
       processes={processes}
       setProcesses={setProcessesWithGroup}
       calculateScheduling={calculateFairShare}
       additionalFields={additionalFields}
+      defaultProcesses={defaultProcesses}
     />
   );
 } 

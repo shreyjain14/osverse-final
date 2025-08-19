@@ -88,6 +88,7 @@ export default function PriorityPage() {
     <SchedulingTemplate
       title="Priority Scheduling"
       description="Priority scheduling executes processes based on priority, with higher priority processes running first. Lower numbers mean higher priority. Can cause starvation for low-priority processes."
+      algorithm="priority"
       colorScheme={colorScheme}
       processes={processes}
       setProcesses={setProcesses}

@@ -63,10 +63,14 @@ function calculateSJF(processes: Process[]): SchedulingResult {
 }
 
 export default function SJFPage() {
-  const [processes, setProcesses] = useState<Process[]>([
+  const defaultProcesses = [
     { name: "P1", arrival: 0, burst: 6 },
     { name: "P2", arrival: 1, burst: 2 },
-  ]);
+    { name: "P3", arrival: 2, burst: 8 },
+    { name: "P4", arrival: 3, burst: 1 },
+  ];
+
+  const [processes, setProcesses] = useState<Process[]>(defaultProcesses);
 
   const colorScheme = {
     primary: "text-green-700",
@@ -79,10 +83,12 @@ export default function SJFPage() {
     <SchedulingTemplate
       title="SJF Scheduling"
       description="Shortest Job First (SJF) schedules the process with the smallest execution time next. It minimizes average waiting time but can cause starvation for longer jobs."
+      algorithm="SJF"
       colorScheme={colorScheme}
       processes={processes}
       setProcesses={setProcesses}
       calculateScheduling={calculateSJF}
+      defaultProcesses={defaultProcesses}
     />
   );
 } 
