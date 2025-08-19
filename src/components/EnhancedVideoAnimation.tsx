@@ -35,7 +35,7 @@ const EnhancedVideoAnimation: React.FC<EnhancedVideoAnimationProps> = ({
   const [activeProcess, setActiveProcess] = useState<string | null>(null);
   const [tooltip, setTooltip] = useState<{ text: string; x: number; y: number } | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const controlsTimeoutRef = useRef<NodeJS.Timeout>();
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // Sample processes with enhanced data
   const processes: Process[] = [

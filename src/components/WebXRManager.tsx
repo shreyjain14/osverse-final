@@ -26,12 +26,12 @@ export class WebXRManager {
 
   // Check if WebXR is supported
   static isSupported(): boolean {
-    return 'xr' in navigator && 'isSessionSupported' in navigator.xr;
+    return 'xr' in navigator && !!navigator.xr && 'isSessionSupported' in navigator.xr;
   }
 
   // Check if AR is supported
   static async isARSupported(): Promise<boolean> {
-    if (!this.isSupported()) return false;
+    if (!this.isSupported() || !navigator.xr) return false;
     
     try {
       return await navigator.xr.isSessionSupported('immersive-ar');
@@ -43,7 +43,7 @@ export class WebXRManager {
   // Request AR session
   async requestARSession(): Promise<boolean> {
     try {
-      if (!WebXRManager.isSupported()) {
+      if (!WebXRManager.isSupported() || !navigator.xr) {
         this.callbacks.onError?.('WebXR not supported');
         return false;
       }

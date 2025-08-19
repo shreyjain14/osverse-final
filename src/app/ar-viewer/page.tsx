@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { 
@@ -15,8 +15,8 @@ interface GanttEntry {
   end: number;
 }
 
-// Simple Mobile AR Viewer Component - Download Only
-export default function ARViewerPage() {
+// Component that uses useSearchParams - wrapped in Suspense
+function ARViewerContent() {
   const searchParams = useSearchParams();
   const [ganttData, setGanttData] = useState<GanttEntry[]>([]);
   const [downloadState, setDownloadState] = useState<'loading' | 'ready' | 'error'>('loading');
@@ -195,6 +195,15 @@ export default function ARViewerPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Main component with Suspense wrapper
+export default function ARViewerPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading AR viewer...</div>}>
+      <ARViewerContent />
+    </Suspense>
   );
 }
  

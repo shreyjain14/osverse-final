@@ -1,10 +1,10 @@
+/// <reference path="../types/model-viewer.d.ts" />
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useWebXR } from "./WebXRManager";
-import "../types/model-viewer";
 import { 
   Camera, 
   Smartphone, 
@@ -369,6 +369,16 @@ export default function EnhancedARModal({
               <div className="space-y-4">
                 {/* AR Viewer */}
                 <div className="relative">
+                  <div 
+                    className="w-full bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl flex items-center justify-center text-gray-600"
+                    style={{ height: 400 }}
+                  >
+                    <div className="text-center">
+                      <p>AR Viewer temporarily disabled</p>
+                      <p className="text-sm">for build compatibility</p>
+                    </div>
+                  </div>
+                  {/* Temporarily disabled for build compatibility
                   <model-viewer
                     ref={modelViewerRef}
                     src={glbUrl}
@@ -396,6 +406,7 @@ export default function EnhancedARModal({
                       Your browser does not support AR features.
                     </div>
                   </model-viewer>
+                  */}
                   
                   {/* AR Session Status */}
                   {arSession && (

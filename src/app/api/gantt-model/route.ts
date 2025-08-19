@@ -745,7 +745,7 @@ export async function GET(req: NextRequest) {
     const io = new NodeIO();
     const glb = await io.writeBinary(doc);
 
-    return new NextResponse(glb, {
+    return new NextResponse(new Uint8Array(glb), {
       status: 200,
       headers: {
         'Content-Type': 'model/gltf-binary',

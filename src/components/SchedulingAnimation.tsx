@@ -17,7 +17,7 @@ interface SchedulingAnimationProps {
 
 const SchedulingAnimation: React.FC<SchedulingAnimationProps> = ({ className = "" }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | undefined>(undefined);
   const [currentAlgorithm, setCurrentAlgorithm] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);

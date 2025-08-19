@@ -434,10 +434,10 @@ export default function LandingPage() {
             <div>
               <h3 className="font-bold text-slate-900 dark:text-white mb-4">Algorithms</h3>
               <ul className="space-y-2 text-slate-600 dark:text-slate-300">
-                <li><Link href="/fcfs" className="hover:text-blue-600 transition-colors">FCFS</Link></li>
-                <li><Link href="/round-robin" className="hover:text-blue-600 transition-colors">Round Robin</Link></li>
-                <li><Link href="/sjf" className="hover:text-blue-600 transition-colors">SJF</Link></li>
-                <li><Link href="/priority" className="hover:text-blue-600 transition-colors">Priority</Link></li>
+                <li><Link href="/algorithms" className="hover:text-blue-600 transition-colors">FCFS</Link></li>
+                <li><Link href="/algorithms" className="hover:text-blue-600 transition-colors">Round Robin</Link></li>
+                <li><Link href="/algorithms" className="hover:text-blue-600 transition-colors">SJF</Link></li>
+                <li><Link href="/algorithms" className="hover:text-blue-600 transition-colors">Priority</Link></li>
               </ul>
             </div>
             

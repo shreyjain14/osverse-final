@@ -95,7 +95,7 @@ export class ARService {
   // WebXR detection
   private isWebXRAvailable(): boolean {
     if (typeof window === 'undefined') return false;
-    return 'xr' in navigator && navigator.xr && 'isSessionSupported' in navigator.xr;
+    return 'xr' in navigator && !!navigator.xr && 'isSessionSupported' in navigator.xr;
   }
 
      // AR support detection

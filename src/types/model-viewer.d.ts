@@ -17,9 +17,10 @@ declare global {
         alt?: string;
         style?: React.CSSProperties;
         onError?: (event: any) => void;
+        ref?: React.RefObject<any>;
       };
     }
   }
 }
 
-export {}; 
+export {};

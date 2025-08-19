@@ -20,7 +20,7 @@ function Model({ url }: { url: string }) {
   return <primitive object={gltf.scene} />;
 }
 
-export default function ViewModelPage() {
+function ViewModelContent() {
   const searchParams = useSearchParams();
   const data = searchParams.get('data');
 
@@ -90,5 +90,14 @@ export default function ViewModelPage() {
         </a>
       </div>
     </div>
+  );
+}
+
+// Main component with Suspense wrapper
+export default function ViewModelPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading 3D model...</div>}>
+      <ViewModelContent />
+    </Suspense>
   );
 } 
