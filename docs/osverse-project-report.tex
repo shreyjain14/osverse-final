@@ -1,0 +1,789 @@
+% !TEX TS-program = xelatex
+% OSVerse Project Report — LaTeX base per CHRIST (Deemed to be University) guidelines
+% Build with: xelatex (fontspec required). Line spacing 1.5, A4, margins, headers/footers.
+
+\documentclass[12pt,a4paper,oneside]{report}
+
+% Encoding and fonts (Times New Roman exact via XeLaTeX)
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\setsansfont{Times New Roman}
+\setmonofont{Courier New}
+
+% Geometry, spacing, and layout
+\usepackage[a4paper,left=1.5in,right=1in,top=1in,bottom=1in]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{caption}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usepackage{xcolor}
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny, 
+  stepnumber=1,
+  numbersep=6pt,
+  showstringspaces=false,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{black!30},
+  tabsize=2,
+  captionpos=b
+}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  urlcolor=blue,
+  citecolor=black,
+  pdfauthor={OSVerse Project Team},
+  pdftitle={OSVerse: Interactive Operating Systems Scheduling Visualizer and AR Demonstrator},
+  pdfsubject={Project Report},
+  pdfkeywords={Operating Systems, CPU Scheduling, Gantt Chart, AR, WebXR, Next.js, TypeScript, Tailwind CSS}
+}
+
+% Caption fonts: 10pt (footnotesize) and placement rules
+\captionsetup{font=footnotesize,labelfont=bf}
+% Tables caption should appear above by convention — author to place \caption before table content when adding tables.
+
+% Chapter and section formatting (titles in CAPS as per spec)
+\titleformat{\chapter}{\bfseries\centering\fontsize{16pt}{16pt}\selectfont}{\thechapter.}{1em}{\MakeUppercase}
+\titleformat{\section}{\bfseries\fontsize{12pt}{12pt}\selectfont}{\thesection}{0.75em}{\MakeUppercase}
+\titleformat{\subsection}{\bfseries\fontsize{12pt}{12pt}\selectfont}{\thesubsection}{0.75em}{}
+
+% TOC formatting (default is fine, but ensure no page number printed on the TOC page itself)
+\renewcommand{\cftchappresnum}{}
+\renewcommand{\cftchapfont}{\bfseries}
+\renewcommand{\cftchapdotsep}{\cftdotsep}
+
+% Header and footer (10pt) with rules. Disabled on Title, Certificate, and TOC as required.
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\fancyhead[L]{\fontsize{10pt}{12pt}\selectfont OSVerse}
+\fancyhead[R]{\fontsize{10pt}{12pt}\selectfont \thepage}
+\fancyfoot[C]{\fontsize{10pt}{12pt}\selectfont Department of Computer Science, CHRIST (Deemed to be University)}
+
+% Convenience environments
+\newcommand{\projectTitle}{OSVerse: Interactive Operating Systems Scheduling Visualizer and AR Demonstrator}
+\newcommand{\projectShort}{OSVerse}
+\newcommand{\deptName}{Department of Computer Science}
+\newcommand{\univName}{CHRIST (Deemed to be University)}
+\newcommand{\githubURL}{https://github.com/shreyjain14/osverse-final}
+\newcommand{\projectURL}{https://osverse.shreyjain.me}
+
+% Helper: a page style without headers/footers
+\fancypagestyle{nohf}{
+  \fancyhf{}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}
+}
+
+% Helper: temporarily reduce spacing on title elements
+\newcommand{\tight}[1]{\begingroup\setlength{\parskip}{4pt}#1\par\endgroup}
+
+% Start of document
+\begin{document}
+
+%=====================
+% Title Page (no header/footer)
+%=====================
+\begin{titlepage}
+  \thispagestyle{nohf}
+  \begin{center}
+    {\bfseries\fontsize{16pt}{16pt}\selectfont \MakeUppercase{\projectTitle}\\[16pt]}
+    \vspace{12pt}
+    {\large Project Report}\\[12pt]
+    \vspace{12pt}
+    {\large \deptName}\\[6pt]
+    {\large \univName}\\[24pt]
+
+    \vfill
+
+    {\large Project Repository: \href{\githubURL}{\githubURL}}\\[6pt]
+    {\large Live Website: \href{\projectURL}{\projectURL}}\\[24pt]
+
+    {\large Submitted by}\\[6pt]
+    {\large Shrey Jain, Sagar Sharma, and Jerin K Joseph}\\[18pt]
+
+    {\large Academic Year: 2025}\\[18pt]
+
+    {\large \today}
+  \end{center}
+\end{titlepage}
+
+%=====================
+% Certificate Page (no header/footer)
+%=====================
+\clearpage
+\thispagestyle{nohf}
+\begin{center}
+  {\bfseries\fontsize{16pt}{16pt}\selectfont \MakeUppercase{Certificate}}\\[24pt]
+\end{center}
+\noindent This is to certify that the project report titled \textbf{\projectTitle} is a bonafide record of the work carried out by the student team under the guidance of the project supervisor, submitted to the \univName, in partial fulfillment of the requirements for the award of the degree.\\[18pt]
+
+\vspace{36pt}
+\begin{tabular}{p{0.45\textwidth}p{0.45\textwidth}}
+\textbf{Guide Signature} & \textbf{Head of Department} \\
+\rule{0.45\textwidth}{0.4pt} & \rule{0.45\textwidth}{0.4pt} \\
+Date: & Date: \\
+\end{tabular}
+
+\vfill
+\noindent Place: Bengaluru
+
+%=====================
+% Acknowledgments (roman numerals start here)
+%=====================
+\clearpage
+\pagenumbering{roman}
+\setcounter{page}{3} % Acknowledgments page labeled as iii
+\chapter*{\MakeUppercase{Acknowledgments}}
+\addcontentsline{toc}{chapter}{Acknowledgments}
+We express our sincere gratitude to our guide and mentors for their continuous support and guidance. We also thank all contributors and the open-source community whose libraries and frameworks enabled the development of \projectShort{}. Finally, we acknowledge our peers and family members for their encouragement throughout this work.
+
+%=====================
+% Abstract
+%=====================
+\clearpage
+\chapter*{\MakeUppercase{Abstract}}
+\addcontentsline{toc}{chapter}{Abstract}
+The OSVerse project is an interactive, web-based visualization platform for classical CPU scheduling algorithms augmented with immersive Augmented Reality (AR) experiences. Built with Next.js, TypeScript, and Tailwind CSS, OSVerse provides animated Gantt charts, queue visualizations, and AR model viewers to enhance conceptual understanding of operating systems scheduling. The platform implements algorithms such as FCFS, SJF (preemptive and non-preemptive), Priority (preemptive and non-preemptive), Round Robin, HRRN, LJF, Lottery, Fair Share, EDF, Multilevel Queue, and Multilevel Feedback Queue. Major outcomes include an extensible animation framework, consistent UI components, and an API-ready model-view layer. The system is deployed at \href{\projectURL}{\projectURL} with source code at \href{\githubURL}{\githubURL}. Recommendations include expanding test coverage, adding accessibility audits, and integrating backend persistence for user scenarios.
+
+%=====================
+% Table of Contents (no header/footer on this page; no page number printed)
+%=====================
+\clearpage
+\thispagestyle{nohf}
+{\hypersetup{linkcolor=black}\tableofcontents}
+\addtocontents{toc}{\protect\thispagestyle{nohf}}
+\clearpage
+
+%=====================
+% Lists (Figures, Tables) and Abbreviations
+%=====================
+\chapter*{\MakeUppercase{List of Tables}}
+\addcontentsline{toc}{chapter}{List of Tables}
+\thispagestyle{fancy}
+\listoftables
+
+\clearpage
+\chapter*{\MakeUppercase{List of Figures}}
+\addcontentsline{toc}{chapter}{List of Figures}
+\thispagestyle{fancy}
+\listoffigures
+
+\clearpage
+\chapter*{\MakeUppercase{List of Abbreviations}}
+\addcontentsline{toc}{chapter}{List of Abbreviations}
+\begin{description}[labelsep=1em,leftmargin=5em]
+  \item[AR] Augmented Reality
+  \item[CPU] Central Processing Unit
+  \item[EDF] Earliest Deadline First
+  \item[FCFS] First-Come, First-Served
+  \item[HRRN] Highest Response Ratio Next
+  \item[LJF] Longest Job First
+  \item[MLFQ] Multilevel Feedback Queue
+  \item[MLQ] Multilevel Queue
+  \item[RR] Round Robin
+  \item[SJF] Shortest Job First
+  \item[UI] User Interface
+  \item[UX] User Experience
+  \item[WebXR] Web Extended Reality APIs
+\end{description}
+
+%=====================
+% Main matter (Arabic numbering starts with Chapter 1)
+%=====================
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+%---------------------
+% Chapter 1: Introduction
+%---------------------
+\chapter{Introduction}
+\noindent This chapter introduces the OSVerse project, summarizes its motivation and scope, and outlines the structure of the report. OSVerse is a web-native, interactive visualization suite for Operating Systems CPU scheduling, paired with optional Augmented Reality (AR) experiences to deepen conceptual understanding through spatial representations of execution timelines.
+
+\section{Project Description}
+CPU scheduling is central to operating systems. Classical pedagogy relies on static diagrams, chalkboard timelines, or slides. These approaches under-communicate dynamic behavior: preemption points, context switches, fairness over time, and interactions between arrivals, priorities, and quantum sizes. OSVerse addresses these limitations by offering:
+\begin{itemize}
+  \item Interactive inputs for processes (arrival, burst, priority) and algorithm parameters (e.g., time quantum).
+  \item Animated Gantt charts and queue visualizations that show execution and waiting states step-by-step.
+  \item Algorithm coverage across FCFS, SJF (preemptive/non-preemptive), Priority (preemptive/non-preemptive), Round Robin, HRRN, LJF, Lottery, Fair Share, EDF, Multilevel Queue, and Multilevel Feedback Queue.
+  \item Optional AR export of the execution timeline to a 3D model (.glb) for immersive viewing on compatible devices.
+\end{itemize}
+OSVerse is implemented with Next.js (React + TypeScript) and Tailwind CSS for the UI; Recharts and custom Canvas animations for charts; Framer Motion for micro-interactions; and a serverless API route that generates glTF/GLB 3D models for AR viewing. The live website is \href{\projectURL}{\projectURL} and the source code is hosted at \href{\githubURL}{\githubURL}.
+
+\section{Existing System}
+Multiple teaching aids exist: printed examples in textbooks, slide decks, Java applets or desktop simulators, and assorted web demos. These typically focus on a small subset of algorithms (often FCFS, non-preemptive SJF, and simple Round Robin), and present limited animation fidelity. Notable gaps include:
+\begin{itemize}
+  \item \textbf{Breadth of algorithms:} Advanced or less common strategies (e.g., HRRN, Lottery, Fair Share, EDF, MLFQ) are often missing.
+  \item \textbf{Rich animations:} Many tools show static blocks rather than synchronized, step-wise executions with helpful overlays and legends.
+  \item \textbf{Modern web stack:} Some older tools rely on outdated technologies (e.g., Java applets) or are not mobile-friendly.
+  \item \textbf{AR augmentation:} Few, if any, integrate AR or 3D exports that can be explored spatially.
+  \item \textbf{Accessibility:} Keyboard navigation, color contrast, and screen-reader friendly layouts are often overlooked.
+\end{itemize}
+OSVerse is designed to bridge these gaps with a modular, accessible, web-native platform that is easily deployable and extensible.
+
+\section{Objectives}
+Design and implement a web-native, extensible, and accessible platform that visualizes multiple CPU scheduling algorithms through synchronized animations and charts, and optionally exports AR-ready 3D timelines, to improve learner comprehension and engagement.
+
+\section{Purpose, Scope and Applicability}
+\subsection{Purpose}
+OSVerse aims to transform how CPU scheduling is taught and learned. By coupling precise algorithm implementations with dynamic visuals and optional AR representations, it helps learners form accurate mental models of execution, preemption, waiting time, and fairness.
+
+\subsection{Scope}
+The project focuses on process scheduling algorithms and their visualization. It implements a standard UI for process input, reusable animation components, a Gantt chart renderer, and an AR export API. Assumptions include single-CPU execution, discrete time units for clarity, and deterministic inputs. The methodology follows iterative development with component-first design, emphasizing correctness, clarity, and responsiveness.
+
+\subsection{Applicability}
+Applications include CS classrooms, lab demonstrations, flipped learning modules, technical talks, outreach events, and self-study. Educators can demonstrate phenomena like convoy effect, starvation mitigation, and quantum tuning. Learners can interactively vary inputs to observe outcomes immediately.
+
+\section{Overview of the Report}
+Chapter~2 analyzes the problem and requirements. Chapter~3 presents the architecture, modules, and interface design. Chapter~4 outlines the implementation and key code. Chapter~5 covers testing. Chapter~6 summarizes outcomes, limitations, and future work. Appendices include the repository structure, user manual, and planning artifacts.
+
+%---------------------
+% Chapter 2: System Analysis and Requirements
+%---------------------
+\chapter{System Analysis and Requirements}
+\noindent This chapter defines the problem, specifies requirements, and presents conceptual models of the system. It documents what the system must do without prescribing how it must be built.
+
+\section{Problem Definition}
+Learners need to understand both the \emph{what} and the \emph{why} of CPU scheduling decisions. Static content cannot capture preemption timing, queue dynamics, or fairness. The problem decomposes into:
+\begin{itemize}
+  \item \textbf{Algorithm engines:} Correctly compute schedules given arrivals, bursts, priorities, and quantum.
+  \item \textbf{Visualization:} Translate schedules into time-based animations and Gantt/queue views with legends.
+  \item \textbf{Interaction:} Let users add/remove processes, adjust parameters, and replay animations.
+  \item \textbf{AR export:} Convert timelines into a 3D model for immersive viewing.
+  \item \textbf{Performance/accessibility:} Maintain responsiveness on typical devices and be usable by a broad audience.
+\end{itemize}
+
+\section{Requirements Specification}
+\subsection*{Functional Requirements}
+\begin{enumerate}
+  \item Accept process inputs: arrival time, burst time, and priority (where applicable).
+  \item Compute schedules for FCFS, SJF (preemptive/non-preemptive), Priority (preemptive/non-preemptive), Round Robin, HRRN, LJF, Lottery, Fair Share, EDF, MLQ, and MLFQ.
+  \item Render animated Gantt charts and legends; provide play/pause, speed control, and reset.
+  \item Provide summary metrics: waiting time (WT), turnaround time (TAT), and their averages.
+  \item Export Gantt data to a downloadable GLB model for AR viewing.
+\end{enumerate}
+
+\subsection*{Non-Functional Requirements}
+\begin{itemize}
+  \item \textbf{Correctness:} Visuals must accurately reflect algorithm logic.
+  \item \textbf{Performance:} Smooth animations at typical frame rates on mainstream laptops/mobile devices.
+  \item \textbf{Accessibility:} Keyboard navigation, sufficient color contrast, ARIA labels where practical.
+  \item \textbf{Compatibility:} Support modern Chromium-based browsers, Safari, and Firefox; progressive degradation for limited WebXR.
+  \item \textbf{Extensibility:} Modular components to add new algorithms and visualizations easily.
+\end{itemize}
+
+\begin{table}[H]
+  \centering
+  \caption{Key Requirements Summary}
+  \begin{tabular}{p{0.28\textwidth} p{0.62\textwidth}}
+    	oprule
+    Category & Examples \\
+    \midrule
+    Functional & Input processes, compute schedules, animate Gantt, export AR model \\
+    Non-Functional & Accessibility, cross-browser, responsive UI, smooth animations \\
+    Constraints & Browser camera permission, device WebXR support, single-CPU model \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Block Diagram}
+Figure~\ref{fig:block} depicts the high-level data flow from user inputs to algorithm engines, to visual renderers and AR export.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[node distance=2.2cm,>=latex]
+    	ikzstyle{block}=[rectangle, draw=black!60, rounded corners, align=center, minimum width=3.2cm, minimum height=1.1cm]
+    	ikzstyle{arrow}=[->, thick]
+
+    \node[block, fill=blue!8] (ui) {Process Inputs\\(UI Forms)};
+    \node[block, right of=ui, xshift=3.2cm, fill=green!8] (alg) {Algorithm Engines\\(FCFS/SJF/RR/etc.)};
+    \node[block, below of=alg, fill=orange!10] (charts) {Gantt \\ Renderer};
+    \node[block, right of=alg, xshift=3.2cm, fill=purple!10] (ar) {AR Export\\(GLB Model)};
+    \node[block, below of=ui, fill=gray!10] (state) {App State\\(Next.js/React)};
+
+    \draw[arrow] (ui) -- (alg);
+    \draw[arrow] (state) -- (alg);
+    \draw[arrow] (alg) -- (charts);
+    \draw[arrow] (alg) -- (ar);
+    \draw[arrow] (ui) -- (state);
+    \draw[arrow] (charts.south) -- +(0,-0.8) node[below]{Legend, Metrics};
+  \end{tikzpicture}
+  \caption{High-level block diagram of OSVerse.}
+  \label{fig:block}
+\end{figure}
+
+\section{System Requirements}
+\subsection{User Characteristics}
+Primary users are undergraduate CS students, educators, and enthusiasts. Users are expected to be comfortable with web UIs and possess basic OS concepts.
+
+\subsection{Software and Hardware Requirements}
+\begin{table}[H]
+  \centering
+  \caption{Software Requirements}
+  \begin{tabular}{p{0.32\textwidth} p{0.58\textwidth}}
+    	oprule
+    Component & Version/Notes \\
+    \midrule
+    Node.js & LTS (e.g., 18+), for Next.js build/dev \\
+    Package Manager & npm or pnpm supported \\
+    Browsers & Chrome/Edge/Brave, Firefox, Safari (latest) \\
+    Frameworks & Next.js, React, Tailwind CSS \\
+    Libraries & Recharts, Framer Motion, glTF-Transform, Lucide icons \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Hardware Requirements}
+  \begin{tabular}{p{0.32\textwidth} p{0.58\textwidth}}
+    	oprule
+    Device & Recommendation \\
+    \midrule
+    CPU & Modern x86/ARM laptop/desktop \\
+    RAM & 8GB+ (dev), 4GB+ (viewing) \\
+    GPU & Integrated is sufficient; mobile GPUs for AR \\
+    Camera & Required for AR on supported devices \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Constraints}
+\begin{itemize}
+  \item Camera permission (for AR) must be granted by the browser.
+  \item WebXR availability varies by browser/device; AR export via GLB provides a fallback.
+  \item Mobile performance constraints necessitate efficient animations.
+\end{itemize}
+
+\section{Conceptual Models}
+\subsection{Data Flow Diagram}
+Figure~\ref{fig:dfd0} shows the Level-0 context diagram. Figure~\ref{fig:dfd1} expands scheduling computation and visualization.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[node distance=2.2cm]
+    	ikzstyle{ext}=[ellipse, draw=black!60, minimum width=2.6cm, align=center]
+    	ikzstyle{proc}=[rectangle, draw=black!60, rounded corners, align=center, minimum width=3.6cm, minimum height=1cm]
+    	ikzstyle{data}=[rectangle, draw=black!40, dashed, align=center, minimum width=3.0cm]
+    	ikzstyle{arrow}=[->]
+
+    \node[ext] (user) {User};
+    \node[proc, right=3.8cm of user] (osv) {OSVerse System};
+    \node[data, below=1.8cm of osv] (views) {Charts, Metrics, AR Model};
+
+    \draw[arrow] (user) -- node[above]{Inputs} (osv);
+    \draw[arrow] (osv) -- node[right]{Outputs} (views);
+    \draw[arrow] (views) -- ++(-3.6,0) |- node[left]{Rendered UI} (user);
+  \end{tikzpicture}
+  \caption{DFD Level-0: OSVerse as a single process.}
+  \label{fig:dfd0}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[node distance=1.8cm,>=latex]
+    	ikzstyle{proc}=[rectangle, draw=black!60, rounded corners, align=center, minimum width=3.6cm, minimum height=1cm]
+    	ikzstyle{data}=[rectangle, draw=black!40, dashed, align=center, minimum width=3.0cm]
+    	ikzstyle{arrow}=[->]
+
+    \node[proc] (input) {Input Forms};
+    \node[proc, right=2.6cm of input] (alg) {Scheduling Engine};
+    \node[proc, right=2.6cm of alg] (viz) {Gantt/Animation};
+    \node[proc, below=1.4cm of alg] (ar) {AR Export (GLB)};
+
+    \draw[arrow] (input) -- node[above]{Processes, Params} (alg);
+    \draw[arrow] (alg) -- node[above]{Schedule} (viz);
+    \draw[arrow] (alg) -- node[right]{Gantt Data} (ar);
+  \end{tikzpicture}
+  \caption{DFD Level-1: Core process breakdown.}
+  \label{fig:dfd1}
+\end{figure}
+
+\subsection{ER Diagram}
+The current system is stateless at runtime, persisting no data. A future enhancement could introduce entities: \textit{Scenario} (metadata), \textit{Process} (arrival, burst, priority), and \textit{Algorithm} (type, parameters). Relationships: Scenario 1..* Process; Scenario 1..1 Algorithm.
+
+%---------------------
+% Chapter 3: System Design
+%---------------------
+\chapter{System Design}
+\noindent This chapter details architecture, module and interface design, and data considerations. The system uses a component-driven architecture with clear separation of algorithm computation, visualization, and export.
+
+\section{System Architecture}
+OSVerse uses Next.js 14+ with the App Router. Pages under \verb|src/app/*/page.tsx| provide route-level experiences for each algorithm (e.g., \verb|/fcfs|, \verb|/round-robin|, \verb|/preemptive-sjf|, etc.). Visualization is composed from reusable components (e.g., \verb|GanttChart|, \verb|AnimatedGanttChart|, \verb|SchedulingTemplate|, queue/animation canvases). A serverless API route \verb|/api/gantt-model| builds GLB models using glTF-Transform.
+
+Figure~\ref{fig:arch} illustrates the architecture.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[node distance=1.8cm,>=latex]
+    	ikzstyle{blk}=[rectangle, draw=black!60, rounded corners, align=center, minimum width=3.6cm, minimum height=1cm]
+    	ikzstyle{arrow}=[->, thick]
+
+    \node[blk, fill=blue!8] (pages) {Next.js Pages\\(Algorithm Routes)};
+    \node[blk, below of=pages, fill=green!8] (components) {Components\\(Charts, Tables, Animations)};
+    \node[blk, right=3.2cm of components, fill=orange!10] (api) {API Route\\(gantt-model)};
+    \node[blk, below of=components, fill=purple!10] (ar) {AR Viewer Page\\(Download GLB)};
+
+    \draw[arrow] (pages) -- (components);
+    \draw[arrow] (components) -- (api);
+    \draw[arrow] (api) -- (ar);
+    \draw[arrow] (pages) -- +(0,1.0) node[above]{Routing} -| (ar);
+  \end{tikzpicture}
+  \caption{System architecture: pages compose components; API exports AR models.}
+  \label{fig:arch}
+\end{figure}
+
+\section{Module Design}
+\begin{table}[H]
+  \centering
+  \caption{Module Overview}
+  \begin{tabular}{p{0.22\textwidth} p{0.68\textwidth}}
+    	oprule
+    Module & Responsibilities / Key Files \\
+    \midrule
+    Algorithm Pages & Route-specific UIs, inputs, summaries. E.g., \verb|src/app/fcfs/page.tsx|, \verb|src/app/round-robin/page.tsx|, and others. \\
+    Gantt Charts & Static and animated charts. \verb|src/components/GanttChart.tsx|, \verb|AnimatedGanttChart.tsx|. \\
+    Process Table & Dynamic process CRUD input. \verb|src/components/ProcessTable.tsx|. \\
+    Canvas Animations & Live timeline canvases. \verb|SchedulingAnimation.tsx|, \verb|EnhancedSchedulingAnimation.tsx|. \\
+    AR Viewer & Downloads AR GLB for viewing. \verb|src/app/ar-viewer/page.tsx|. \\
+    AR Model API & Converts Gantt to GLB. \verb|src/app/api/gantt-model/route.ts|. \\
+    UI Kit & Buttons, inputs, forms, cards, tabs under \verb|src/components/ui/*.tsx|. \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Database Design}
+The current application is client-centric and stateless, persisting no data. A future extension could add persistence for saved scenarios, user profiles, and shared links.
+\subsection{Tables and Relationships}
+Potential tables: \texttt{Users}, \texttt{Scenarios}, \texttt{Processes}, \texttt{Algorithms}. \texttt{Scenarios} 1..* \texttt{Processes}; \texttt{Scenarios} 1..1 \texttt{Algorithms}.
+\subsection{Data Integrity and Constraints}
+Foreign key constraints between \texttt{Scenarios} and \texttt{Processes}; validations for non-negative arrival/burst; algorithm parameter ranges.
+
+\section{System Configuration (optional)}
+Environment variables are minimal (none required for basic usage). The project builds with Next.js defaults and can be deployed to Vercel. The API route performs in-process GLB generation using glTF-Transform.
+
+\section{Interface Design and Procedural Design}
+\subsection{User Interface Design}
+The UI emphasizes clarity and progressive disclosure. Each algorithm page uses \verb|SchedulingTemplate| to compose a heading, description, input table, controls, result metrics, and the Gantt chart. Components are responsive and adapt to mobile/desktop layouts. Keyboard focus management and contrast-aware colors are prioritized.
+
+\subsection{Application Flow/Class Diagram}
+At a high level: (1) user edits processes/parameters; (2) presses Calculate; (3) algorithm engine returns schedule; (4) results and charts update; (5) optional AR export encodes GLB.
+
+\section{Reports Design}
+The primary “report” is an on-screen summary including per-process finish time, TAT, WT, and their averages. Additionally, an AR model \texttt{.glb} can be downloaded for 3D/AR review.
+
+%---------------------
+% Chapter 4: Implementation
+%---------------------
+\chapter{Implementation}
+\noindent This chapter summarizes implementation approaches, coding standards, and key code segments. The codebase is TypeScript-first with modular React components and small, testable functions for algorithm logic.
+
+\section{Implementation Approaches}
+An iterative, component-first approach was adopted:
+\begin{enumerate}
+  \item Establish core UI primitives (cards, buttons, inputs) and layout.
+  \item Implement process input table and a reusable scheduling template.
+  \item Build algorithm engines incrementally (FCFS, RR, then others).
+  \item Add static and animated Gantt charts; refine legends and tooltips.
+  \item Implement AR export API and viewer workflow.
+  \item Optimize performance and refine accessibility.
+\end{enumerate}
+
+\section{Coding Standard}
+Coding conventions include:
+\begin{itemize}
+  \item TypeScript types and interfaces for props and data (e.g., \verb|GanttEntry|).
+  \item React functional components, hooks, and composable props.
+  \item File naming aligned with component names; colocated logic.
+  \item Linting/formatting via ESLint/Prettier defaults for Next.js projects.
+  \item Granular commits with clear messages.
+\end{itemize}
+
+\section{Coding Details}
+\subsection*{FCFS Scheduling Calculation}
+\begin{lstlisting}[language=JavaScript, caption={FCFS schedule calculation (excerpt from \texttt{src/app/fcfs/page.tsx}).}]
+function calculateFCFS(processes: Process[]): SchedulingResult {
+  const sorted = [...processes].sort((a, b) => a.arrival - b.arrival);
+  let time = 0, totalTAT = 0, totalWT = 0; const gantt: GanttEntry[] = [];
+  const results = sorted.map((p) => {
+    if (time < p.arrival) { time = p.arrival; }
+    const start = time; const finish = start + p.burst; time = finish;
+    const tat = finish - p.arrival; const wt = tat - p.burst;
+    totalTAT += tat; totalWT += wt; gantt.push({ name: p.name, start, end: finish });
+    return { ...p, finish, tat, wt };
+  });
+  return { results, avgTAT: (totalTAT / processes.length).toFixed(2),
+           avgWT: (totalWT / processes.length).toFixed(2), gantt };
+}
+\end{lstlisting}
+
+\subsection*{Round Robin Scheduling}
+\begin{lstlisting}[language=JavaScript, caption={Round Robin calculation (excerpt from \texttt{src/app/round-robin/page.tsx}).}]
+function calculateRR(processes: Process[], quantum: number): SchedulingResult {
+  let time = 0, queue: number[] = [], gantt: GanttEntry[] = [];
+  const n = processes.length, rem = processes.map(p => p.burst);
+  const finish = Array(n).fill(0), tat = Array(n).fill(0), wt = Array(n).fill(0);
+  const arrived = Array(n).fill(false); let completed = 0;
+  while (completed < n) {
+    for (let i = 0; i < n; i++) if (!arrived[i] && processes[i].arrival <= time) { queue.push(i); arrived[i] = true; }
+    if (queue.length === 0) { time++; continue; }
+    const idx = queue.shift()!; const exec = Math.min(quantum, rem[idx]);
+    gantt.push({ name: processes[idx].name, start: time, end: time + exec });
+    time += exec; rem[idx] -= exec;
+    for (let i = 0; i < n; i++) if (!arrived[i] && processes[i].arrival <= time) { queue.push(i); arrived[i] = true; }
+    if (rem[idx] > 0) queue.push(idx); else { finish[idx] = time; tat[idx] = finish[idx] - processes[idx].arrival; wt[idx] = tat[idx] - processes[idx].burst; completed++; }
+  }
+  const totalTAT = tat.reduce((a, b) => a + b, 0), totalWT = wt.reduce((a, b) => a + b, 0);
+  return { results: processes.map((p, i) => ({ ...p, finish: finish[i], tat: tat[i], wt: wt[i] })),
+           avgTAT: (totalTAT / n).toFixed(2), avgWT: (totalWT / n).toFixed(2), gantt };
+}
+\end{lstlisting}
+
+\subsection*{Animated Gantt Rendering}
+\begin{lstlisting}[language=JavaScript, caption={Animated Gantt chart (excerpt from \texttt{src/components/AnimatedGanttChart.tsx}).}]
+const AnimatedGanttChart: React.FC<AnimatedGanttChartProps> = ({ gantt, colorScheme, algorithm = "Scheduling" }) => {
+  const [currentTime, setCurrentTime] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const maxTime = gantt.length > 0 ? Math.max(...gantt.map((g) => g.end)) : 10;
+  const uniqueProcesses = Array.from(new Set(gantt.filter(g => g.name !== "Idle").map(g => g.name)));
+  // ... playback controls and colored cells per time unit ...
+};
+\end{lstlisting}
+
+\subsection*{AR Export API}
+\begin{lstlisting}[language=JavaScript, caption={API route generating GLB from Gantt data (excerpt from \texttt{src/app/api/gantt-model/route.ts}).}]
+export async function GET(req: NextRequest) {
+  const gantt = JSON.parse(req.nextUrl.searchParams.get('data')!);
+  const doc = new Document(); doc.createBuffer(); const scene = doc.createScene('Gantt');
+  const maxTime = Math.max(...gantt.map((e: any) => e.end));
+  const textMaterial = doc.createMaterial('Text').setBaseColorFactor([0.05,0.05,0.05,1]);
+  // Create bars per gantt entry as rectangular meshes; add labels and markers
+  // Serialize to GLB
+  const io = new NodeIO(); const glb = await io.writeBinary(doc);
+  return new NextResponse(new Uint8Array(glb), { status: 200, headers: { 'Content-Type': 'model/gltf-binary' } });
+}
+\end{lstlisting}
+
+\section{Screen Shots}
+Figures for representative algorithm pages, animated Gantt charts, and AR download UI should be inserted close to the relevant text when available. Captions should follow the specified 10pt style.
+
+%---------------------
+% Chapter 5: Testing
+%---------------------
+\chapter{Testing}
+\noindent This chapter presents test cases, approaches, and reports. Testing emphasizes algorithm correctness, UI behavior, and AR export robustness.
+
+\section{Test Cases}
+\begin{longtable}{p{0.25\textwidth} p{0.60\textwidth}}
+\caption{Representative Test Scenarios and Expected Outcomes}\\
+	oprule
+Scenario & Expected Outcome \\
+\midrule
+FCFS with staggered arrivals & Processes execute in arrival order; no preemption; correct WT/TAT. \\
+Round Robin with quantum=2 & Time-sliced execution; fairness across processes; correct totals. \\
+Priority (preemptive) & Higher priority interrupts lower; prevent starvation using aging (future). \\
+SJF (non-preemptive) & Shortest job first without preemption; correct total waiting time reduction. \\
+AR Export & GLB downloads successfully; can be viewed in device AR viewer. \\
+\bottomrule
+\end{longtable}
+
+\section{Testing Approaches}
+\begin{itemize}
+  \item \textbf{Unit tests (future addition):} Algorithm engines validated against known examples.
+  \item \textbf{Component tests:} ProcessTable input validation; Gantt render with empty/edge cases.
+  \item \textbf{Integration tests:} Pages render and compute results; AR route returns GLB for valid input.
+\end{itemize}
+
+\section{Test Reports}
+Sample FCFS input: P1(0,4), P2(2,3), P3(6,2). Observed output: Avg TAT and WT match computed values; Gantt blocks appear in sequence with idle gaps if any. Round Robin sample: four processes with quantum=2 yield interleaved bars and expected averages.
+
+%---------------------
+% Chapter 6: Conclusion
+%---------------------
+\chapter{Conclusion}
+\noindent This chapter revisits objectives, summarizes features and results, notes limitations, and outlines future work.
+
+\section{Design and Implementation Issues}
+Key challenges included:
+\begin{itemize}
+  \item \textbf{Animation performance:} Balancing DOM-based grids vs. Canvas renderers and optimizing rerenders.
+  \item \textbf{Color/contrast:} Ensuring readability and accessibility across dark/light themes.
+  \item \textbf{AR export fidelity:} Creating legible 3D text and bars with the glTF pipeline without heavy dependencies.
+  \item \textbf{Cross-browser quirks:} Minor differences in event timing and font rendering.
+\end{itemize}
+
+\section{Advantages and Limitations}
+	extbf{Advantages:} Web-native, no install; broad algorithm coverage; interactive animations; AR augmentation; modular architecture.
+
+	extbf{Limitations:} No backend persistence yet; limited automated tests; AR support varies by device; advanced algorithms (e.g., EDF/MLFQ) require rigorous validation for edge cases.
+
+\section{Future Scope of the Project}
+Potential enhancements include saved scenarios and sharing, collaborative editing, printable PDF reports, accessibility audits, a11y annotations in charts, additional OS modules (deadlocks, memory management), and expanded AR interactions.
+
+%---------------------
+% Appendices
+%---------------------
+\appendix
+\chapter{Project Structure}
+The following structure summarizes the repository at the time of writing:
+
+\begin{verbatim}
+ANIMATION_README.md
+AR_README.md
+components.json
+ENHANCED_ANIMATION_README.md
+next-env.d.ts
+next.config.ts
+package.json
+postcss.config.mjs
+README.md
+tailwind.config.js
+tsconfig.json
+public/
+  file.svg
+  globe.svg
+  next.svg
+  scheduling-preview.svg
+  vercel.svg
+  window.svg
+src/
+  app/
+    favicon.ico
+    globals.css
+    layout.tsx
+    page.tsx
+    algorithms/
+      page.tsx
+    api/
+      gantt-model/
+        route.ts
+    ar-demo/
+      page.tsx
+    ar-viewer/
+      page-new.tsx
+      page-old.tsx
+      page.tsx
+    edf/
+      page.tsx
+    fair-share/
+      page.tsx
+    fcfs/
+      page.tsx
+    hrrn/
+      page.tsx
+    ljf/
+      page.tsx
+    lottery/
+      page.tsx
+    multilevel-feedback-queue/
+      page.tsx
+    multilevel-queue/
+      page.tsx
+    preemptive-priority/
+      page.tsx
+    preemptive-sjf/
+      page.tsx
+    priority/
+      page.tsx
+    round-robin/
+      page.tsx
+    sjf/
+      page.tsx
+    view-model/
+      page.tsx
+  components/
+    AlgorithmCard.tsx
+    AnimatedGanttChart.tsx
+    BackgroundAnimation.tsx
+    ClassicGanttChart.tsx
+    EnhancedARModal.tsx
+    EnhancedQueueAnimation.tsx
+    EnhancedSchedulingAnimation.tsx
+    EnhancedVideoAnimation.tsx
+    GanttChart.tsx
+    LazyAnimation.tsx
+    ProcessTable.tsx
+    QueueAnimation.tsx
+    SchedulingAnimation.tsx
+    SchedulingTemplate.tsx
+    SimpleARModal.tsx
+    StreamlinedARModal.tsx
+    VideoAnimation.tsx
+    WebXRManager.tsx
+    ui/
+      button.tsx
+      card.tsx
+      form.tsx
+      input.tsx
+      label.tsx
+      tabs.tsx
+  lib/
+    ar-service.ts
+    utils.ts
+  types/
+    model-viewer.d.ts
+    webxr.d.ts
+\end{verbatim}
+
+\chapter{User Manual}
+\section*{Accessing the Application}
+Open \href{\projectURL}{\projectURL}. Navigate via the Home page or the Algorithms index.
+
+\section*{Running an Algorithm}
+\begin{enumerate}
+  \item Select an algorithm route (e.g., FCFS, Round Robin).
+  \item Use the process table to add rows and set arrival/burst/priority.
+  \item Click \textit{Calculate Results}. Review per-process results and averages.
+  \item Use the animated Gantt to play/pause and adjust speed.
+\end{enumerate}
+
+\section*{Exporting AR Model}
+On supported pages, choose AR export or navigate to the AR Viewer. Provide or carry forward the Gantt data and download the \texttt{.glb}. Use your device’s AR viewer to place and inspect the 3D timeline.
+
+\section*{Troubleshooting}
+If AR export fails, ensure you have stable network and a supported browser. For performance issues, reduce the number of processes or animation speed.
+
+\chapter{Planning Artifacts}
+Development proceeded in iterative milestones: core UI, FCFS baseline, RR with animation, expanded algorithm coverage, AR export, and UX polish. Future sprints target persistence, collaboration, and test automation.
+
+%---------------------
+% References (numbered, single-spaced entries, double-spaced between)
+%---------------------
+\clearpage
+\renewcommand\refname{References}
+\begin{thebibliography}{99}
+\setlength{\itemsep}{\baselineskip} % double space between entries
+\setlength{\parsep}{0pt}
+\setlength{\parskip}{0pt}
+\small % approximate 10pt for entries
+\bibitem{pressman2010} Roger S. Pressman. Software Engineering: A Practitioner’s Approach. 7th ed. McGraw-Hill Education, 2010.
+\bibitem{webxr} W3C. "WebXR Device API." Latest Working Draft. Accessed: \today. \url{https://www.w3.org/TR/webxr/}.
+\bibitem{nextjs} Vercel. "Next.js Documentation." Accessed: \today. \url{https://nextjs.org/docs}.
+\bibitem{react} Meta. "React Documentation." Accessed: \today. \url{https://react.dev}.
+\bibitem{ts} Microsoft. "TypeScript Documentation." Accessed: \today. \url{https://www.typescriptlang.org/docs/}.
+\bibitem{tailwind} Tailwind Labs. "Tailwind CSS Documentation." Accessed: \today. \url{https://tailwindcss.com/docs}.
+\bibitem{recharts} Recharts. "Recharts Documentation." Accessed: \today. \url{https://recharts.org/en-US/}.
+\bibitem{framer} Framer. "Framer Motion." Accessed: \today. \url{https://www.framer.com/motion/}.
+\bibitem{gltf} Khronos Group. "glTF 2.0 Specification." Accessed: \today. \url{https://www.khronos.org/gltf/}.
+\bibitem{gltftransform} Don McCurdy. "glTF-Transform." Accessed: \today. \url{https://gltf-transform.donmccurdy.com/}.
+\bibitem{vercel} Vercel. "Vercel Platform." Accessed: \today. \url{https://vercel.com/}.
+\end{thebibliography}
+
+\end{document}
