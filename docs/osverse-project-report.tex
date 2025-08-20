@@ -217,6 +217,19 @@ The OSVerse project is an interactive, web-based visualization platform for clas
 \chapter{Introduction}
 \noindent This chapter introduces the OSVerse project, summarizes its motivation and scope, and outlines the structure of the report. OSVerse is a web-native, interactive visualization suite for Operating Systems CPU scheduling, paired with optional Augmented Reality (AR) experiences to deepen conceptual understanding through spatial representations of execution timelines.
 
+\section*{Background and Motivation}
+Operating Systems (OS) are the backbone of modern computing, responsible for managing hardware resources, providing essential services, and ensuring the smooth execution of applications. One of the most critical tasks performed by an OS is process scheduling, which determines the order and manner in which processes are allocated CPU time. The efficiency and fairness of scheduling algorithms directly impact system performance, user experience, and resource utilization.
+
+The study of CPU scheduling is a foundational topic in computer science curricula. However, traditional teaching methods—such as static diagrams, textbook examples, and classroom lectures—often fail to convey the dynamic and interactive nature of scheduling decisions. Concepts like preemption, context switching, starvation, and fairness are best understood through visualization and experimentation. This gap in pedagogy motivated the creation of OSVerse: a platform designed to make scheduling algorithms tangible, interactive, and engaging for learners.
+
+\section*{Project Vision}
+
+
+The project is a collaborative effort by undergraduate students, guided by faculty and supported by the open-source community. OSVerse is built with Next.js, TypeScript, and Tailwind CSS, and is available as a live website and open-source repository.
+
+\section*{Structure of the Report}
+This report is organized to provide a comprehensive overview of OSVerse, from its conception and design to implementation, testing, and future directions. Each chapter delves into specific aspects of the project, ensuring that readers gain both theoretical and practical insights into the development and impact of the platform.
+
 \section{Project Description}
 CPU scheduling is central to operating systems. Classical pedagogy relies on static diagrams, chalkboard timelines, or slides. These approaches under-communicate dynamic behavior: preemption points, context switches, fairness over time, and interactions between arrivals, priorities, and quantum sizes. OSVerse addresses these limitations by offering:
 \begin{itemize}
@@ -261,14 +274,16 @@ Chapter~2 analyzes the problem and requirements. Chapter~3 presents the architec
 \noindent This chapter defines the problem, specifies requirements, and presents conceptual models of the system. It documents what the system must do without prescribing how it must be built.
 
 \section{Problem Definition}
-Learners need to understand both the \emph{what} and the \emph{why} of CPU scheduling decisions. Static content cannot capture preemption timing, queue dynamics, or fairness. The problem decomposes into:
+Learners need to understand both the \emph{what} and the \emph{why} of CPU scheduling decisions. Static content cannot capture preemption timing, queue dynamics, or fairness. The problem decomposes into several core challenges:
 \begin{itemize}
-  \item \textbf{Algorithm engines:} Correctly compute schedules given arrivals, bursts, priorities, and quantum.
-  \item \textbf{Visualization:} Translate schedules into time-based animations and Gantt/queue views with legends.
-  \item \textbf{Interaction:} Let users add/remove processes, adjust parameters, and replay animations.
-  \item \textbf{AR export:} Convert timelines into a 3D model for immersive viewing.
-  \item \textbf{Performance/accessibility:} Maintain responsiveness on typical devices and be usable by a broad audience.
+  \item \textbf{Algorithm engines:} Correctly compute schedules given arrivals, bursts, priorities, and quantum. The engines must handle edge cases such as simultaneous arrivals, zero burst times, and priority inversion. Future additions will include support for multi-core scheduling, distributed systems, and real-time constraints. See \href{https://en.wikipedia.org/wiki/Scheduling_(computing)}{Scheduling Concepts}.
+  \item \textbf{Visualization:} Translate schedules into time-based animations and Gantt/queue views with legends. Visualizations should be customizable, allowing users to select color schemes, zoom levels, and annotation overlays. Planned features include 3D Gantt charts and timeline comparisons across algorithms. Explore \href{https://osverse.shreyjain.me/animated-gantt}{Animated Gantt Demo}.
+  \item \textbf{Interaction:} Let users add/remove processes, adjust parameters, and replay animations. The platform will introduce scenario saving, batch editing, and collaborative input modes. Future work includes voice input, gesture controls, and integration with external data sources. Try \href{https://osverse.shreyjain.me/process-table}{Process Table}.
+  \item \textbf{AR export:} Convert timelines into a 3D model for immersive viewing. The AR export feature will be expanded to support real-time overlays, collaborative AR sessions, and integration with external AR platforms. Learn about \href{https://osverse.shreyjain.me/ar-viewer}{AR Viewer}.
+  \item \textbf{Performance/accessibility:} Maintain responsiveness on typical devices and be usable by a broad audience. Accessibility audits, performance profiling, and compatibility testing are ongoing. Planned enhancements include adaptive layouts, localization, and alternative input methods. Read \href{https://www.w3.org/WAI/standards-guidelines/wcag/}{WCAG Guidelines}.
 \end{itemize}
+
+In addition to these core challenges, OSVerse aims to support advanced research and experimentation. Users will be able to simulate large-scale scenarios, analyze performance metrics, and export results for further study. Planned integrations include statistical reporting, machine learning-based scheduling optimization, and support for external datasets.
 
 \section{Requirements Specification}
 \subsection*{Functional Requirements}
